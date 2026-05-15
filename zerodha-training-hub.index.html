@@ -469,18 +469,35 @@ const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
 const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits'];
 let _syncTimer = null;
 
+// Firebase converts arrays to {0:..,1:..} objects — convert back
+function fbFix(val) {
+  if(val===null||val===undefined) return val;
+  if(Array.isArray(val)) return val.map(fbFix);
+  if(typeof val==='object') {
+    const keys=Object.keys(val);
+    const isArr=keys.length>0&&keys.every(k=>!isNaN(parseInt(k)));
+    if(isArr) return keys.sort((a,b)=>parseInt(a)-parseInt(b)).map(k=>fbFix(val[k]));
+    const out={};keys.forEach(k=>out[k]=fbFix(val[k]));
+    return out;
+  }
+  return val;
+}
+
 async function gsSet(key, value) {
   const str = JSON.stringify(value);
   localStorage.setItem(key, str);
   try {
+    // Wrap arrays in {v:[...]} to prevent Firebase array->object conversion
+    const payload = Array.isArray(value) ? JSON.stringify({v:value}) : str;
     await fetch(`${FB_URL}/${key}.json`, {
-      method:'PUT', body:str,
+      method:'PUT', body:payload,
       headers:{'Content-Type':'application/json'}
     });
   } catch(e) {}
 }
 
 async function syncAll() {
+  const badge = document.getElementById('syncBadge');
   try {
     const r = await fetch(`${FB_URL}/.json?_=${Date.now()}`);
     const d = await r.json();
@@ -488,18 +505,21 @@ async function syncAll() {
       let changed = false;
       SYNC_KEYS.forEach(k => {
         if(d[k]!==undefined && d[k]!==null) {
-          const remoteStr = JSON.stringify(d[k]);
+          // Unwrap array wrapper if present
+          const raw = (d[k] && d[k].v!==undefined) ? d[k].v : fbFix(d[k]);
+          const remoteStr = JSON.stringify(raw);
           if(remoteStr !== localStorage.getItem(k)) {
             localStorage.setItem(k, remoteStr);
             changed = true;
           }
         }
       });
-      if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
+      if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal')&&document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
     }
-  } catch(e) {}
-  const badge = document.getElementById('syncBadge');
-  if(badge) badge.textContent = '🟢 Live ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    if(badge) badge.textContent = '🟢 Live ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    if(badge) badge.textContent = '🔴 Offline';
+  }
 }
 
 function startSyncLoop() {
