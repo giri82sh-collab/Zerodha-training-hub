@@ -475,7 +475,7 @@ function fbFix(val) {
   if(Array.isArray(val)) return val.map(fbFix);
   if(typeof val==='object') {
     const keys=Object.keys(val);
-    const isArr=keys.length>0&&keys.every(k=>!isNaN(parseInt(k)));
+    const isArr=keys.length>0&&keys.every(k=>/^\d+$/.test(k));
     if(isArr) return keys.sort((a,b)=>parseInt(a)-parseInt(b)).map(k=>fbFix(val[k]));
     const out={};keys.forEach(k=>out[k]=fbFix(val[k]));
     return out;
