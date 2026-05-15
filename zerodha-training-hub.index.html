@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zerodha Training Hub</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0c0d14;--surface:#13141f;--s2:#1a1b2e;--s3:#22243a;--border:#2a2c42;--ac:#00e5c3;--ac2:#ff6b35;--ac3:#7c6af7;--tx:#e8eaf6;--tx2:#9098b8;--tx3:#5a6180;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+a{color:var(--ac);text-decoration:none;}button{cursor:pointer;font-family:inherit;}
+input,select,textarea{font-family:inherit;}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.ll{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.li{width:48px;height:48px;background:var(--ac2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff;}
+.lt{font-size:24px;font-weight:800;}.ls{font-size:13px;color:var(--tx2);margin-bottom:36px;text-align:center;}
+.roles{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.rc{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:20px;width:190px;cursor:pointer;transition:all .18s;text-align:center;}
+.rc:hover,.rc.sel{transform:translateY(-3px);}
+.rc[data-role=admin]:hover,.rc[data-role=admin].sel{border-color:#f59e0b;background:rgba(245,158,11,.06);box-shadow:0 8px 24px rgba(245,158,11,.1);}
+.rc[data-role=trainer]:hover,.rc[data-role=trainer].sel{border-color:var(--ac3);background:rgba(124,106,247,.06);box-shadow:0 8px 24px rgba(124,106,247,.1);}
+.rc[data-role=guest]:hover,.rc[data-role=guest].sel{border-color:var(--ac2);background:rgba(255,107,53,.06);box-shadow:0 8px 24px rgba(255,107,53,.1);}
+.rc[data-role=girish]:hover,.rc[data-role=girish].sel{border-color:#a855f7;background:rgba(168,85,247,.06);box-shadow:0 8px 24px rgba(168,85,247,.1);}
+.rc[data-role=harish]:hover,.rc[data-role=harish].sel{border-color:#ef4444;background:rgba(239,68,68,.06);box-shadow:0 8px 24px rgba(239,68,68,.1);}
+.ap4{background:rgba(168,85,247,.15);color:#a855f7;}
+.ap5{background:rgba(239,68,68,.15);color:#ef4444;}
+.dl-btn{background:var(--ac);color:#0c0d14;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.dl-btn:hover{background:#00c4a8;}
+.dl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.fsel-hrs{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:6px 10px;border-radius:6px;font-size:12px;width:130px;}
+.pkra-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.pkra-title{font-size:13px;font-weight:700;color:var(--ac);margin-bottom:10px;}
+.pkra-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.pkra-lbl{font-size:11px;color:var(--tx2);width:170px;flex-shrink:0;}
+.pkra-bar{flex:1;height:8px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.pkra-fill{height:100%;border-radius:4px;transition:width .4s;}
+.pkra-pct{font-size:11px;font-weight:700;width:40px;text-align:right;}
+.tsub-row{display:none;justify-content:center;gap:10px;margin:-12px 0 14px;}
+.tsub-btn{background:var(--s2);border:2px solid var(--border);color:var(--tx);padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;}
+.tsub-btn:hover,.tsub-btn.sel{border-color:var(--ac);background:rgba(0,229,195,.08);color:var(--ac);}
+.rpw-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;display:none;align-items:center;justify-content:center;}
+.rpw-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 28px 22px;width:340px;max-width:92vw;}
+.rpw-title{font-size:15px;font-weight:700;margin-bottom:16px;}
+.rpw-inp{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:9px 12px;border-radius:7px;font-size:13px;margin-bottom:10px;box-sizing:border-box;}
+.rpw-inp:focus{outline:none;border-color:var(--ac);}
+.rpw-btns{display:flex;gap:8px;margin-top:6px;}
+.rpw-save{flex:1;background:var(--ac);color:#0c0d14;border:none;padding:9px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer;}
+.rpw-save:hover{background:#00c4a8;}
+.rpw-cancel{flex:1;background:var(--s2);color:var(--tx2);border:1px solid var(--border);padding:9px;border-radius:7px;font-size:13px;cursor:pointer;}
+.rpw-msg{font-size:11px;min-height:16px;margin-top:4px;}
+.kra-edit-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.kra-edit-tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--border);}
+.kra-edit-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.kra-score-inp{width:58px;background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:4px 7px;border-radius:5px;font-size:12px;text-align:center;}
+.kra-score-inp:focus{outline:none;border-color:var(--ac);}
+.kra-save-btn{background:var(--ac);color:#0c0d14;border:none;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-top:10px;}
+.kra-save-btn:hover{background:#00c4a8;}
+.kra-bar-mini{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-left:4px;}
+
+/* MONTHLY PLANNER */
+.cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.cal-nav-btn{background:var(--s2);border:1px solid var(--border);color:var(--tx);width:34px;height:34px;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.cal-nav-btn:hover{border-color:var(--ac);color:var(--ac);}
+.cal-month-label{font-size:18px;font-weight:700;min-width:170px;text-align:center;}
+.cal-today-btn{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:0 14px;height:34px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
+.cal-today-btn:hover{border-color:var(--ac);color:var(--ac);}
+.cal-owner-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.cal-owner-tab{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.cal-owner-tab:hover{border-color:var(--ac);color:var(--ac);}
+.cal-owner-tab.active{border-color:var(--ac);color:var(--ac);background:rgba(0,229,195,.08);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border-radius:10px;overflow:hidden;}
+.cal-dow{background:var(--s2);text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;}
+.cal-cell{background:var(--surface);min-height:110px;padding:7px 6px 5px;cursor:pointer;transition:background .12s;position:relative;vertical-align:top;}
+.cal-cell:hover{background:var(--s2);}
+.cal-cell.today{background:rgba(0,229,195,.05);outline:1px inset rgba(0,229,195,.3);}
+.cal-cell.today .cal-dn{color:var(--ac);font-weight:700;background:rgba(0,229,195,.15);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
+.cal-cell.empty{background:rgba(12,13,20,.6);cursor:default;}
+.cal-dn{font-size:11px;color:var(--tx2);margin-bottom:4px;}
+.cal-evt{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;line-height:1.4;}
+.cal-add-hint{font-size:9px;color:var(--tx3);margin-top:4px;text-align:center;}
+.cal-more{font-size:9px;color:var(--ac);margin-top:2px;font-weight:600;}
+/* EVENT MODAL */
+.evm-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;display:none;align-items:center;justify-content:center;padding:16px;}
+.evm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:440px;max-width:100%;max-height:90vh;overflow-y:auto;}
+.evm-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.evm-title{font-size:14px;font-weight:700;}
+.evm-close{background:none;border:none;color:var(--tx2);font-size:20px;cursor:pointer;line-height:1;}
+.evm-list{margin-bottom:4px;}
+.evm-item{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 36px 10px 12px;margin-bottom:8px;position:relative;}
+.evm-item-title{font-size:12px;font-weight:700;}
+.evm-item-meta{font-size:10px;color:var(--tx2);margin-top:3px;}
+.evm-item-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:14px;cursor:pointer;padding:4px;}
+.evm-item-del:hover{color:var(--red);}
+.evm-sep{height:1px;background:var(--border);margin:14px 0;}
+.evm-add-lbl{font-size:11px;font-weight:700;color:var(--ac);margin-bottom:10px;}
+.evm-inp{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:9px 10px;border-radius:7px;font-size:12px;margin-bottom:8px;box-sizing:border-box;}
+.evm-inp:focus{outline:none;border-color:var(--ac);}
+.evm-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.evm-save{background:var(--ac);color:#0c0d14;border:none;padding:9px 20px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;}
+.evm-save:hover{background:#00c4a8;}
+.evm-empty{color:var(--tx3);font-size:12px;margin-bottom:12px;}
+.ri{font-size:34px;margin-bottom:8px;}.rn{font-size:14px;font-weight:700;margin-bottom:4px;}.rd{font-size:11px;color:var(--tx2);line-height:1.5;}
+.ra{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px;}
+.ap{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:600;}
+.ap1{background:rgba(0,229,195,.15);color:var(--ac);}
+.ap2{background:rgba(124,106,247,.15);color:var(--ac3);}
+.ap3{background:rgba(255,107,53,.15);color:var(--ac2);}
+.lf{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:300px;}
+.liw{position:relative;width:100%;}
+.lin{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--tx);padding:11px 14px;border-radius:8px;font-size:14px;outline:none;transition:border-color .15s;}
+.lin:focus{border-color:var(--ac);}
+.tpw{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx2);font-size:15px;}
+.gh{font-size:11px;color:var(--tx3);text-align:center;}
+.le{font-size:12px;color:var(--red);min-height:16px;text-align:center;}
+.lb{width:100%;padding:12px;border-radius:8px;border:none;background:var(--ac);color:#0c0d14;font-size:14px;font-weight:700;transition:all .15s;}
+.lb:hover{background:#00c4a8;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* TOP NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.4);}
+.nl{display:flex;align-items:center;gap:9px;padding:13px 14px 13px 0;border-right:1px solid var(--border);margin-right:6px;flex-shrink:0;}
+.nli{width:30px;height:30px;background:var(--ac2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;}
+.nlt{font-size:13px;font-weight:700;}.nls{font-size:10px;color:var(--tx2);}
+.tabs{display:flex;flex:1;}
+.tab{padding:15px 18px;font-size:13px;font-weight:500;color:var(--tx2);border:none;background:none;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab:hover{color:var(--tx);}.tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+.nbadge{display:inline-block;background:var(--s3);color:var(--tx2);font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px;}
+.nub{margin-left:auto;display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:20px;background:var(--s2);border:1px solid var(--border);font-size:12px;cursor:pointer;}
+.nud{width:7px;height:7px;border-radius:50%;}
+
+/* APP SHELL */
+#appShell{display:none;}
+.panel{display:none;padding:26px 26px 60px;max-width:1400px;margin:0 auto;}.panel.active{display:block;}
+
+/* SHARED */
+.sh{margin-bottom:20px;}.st{font-size:20px;font-weight:700;}.ss{font-size:13px;color:var(--tx2);margin-top:3px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;}
+.ct{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx2);margin-bottom:14px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:20px;}
+.krow{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid transparent;}
+.kl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--tx2);margin-bottom:7px;}
+.kv{font-size:26px;font-weight:700;}.ks{font-size:11px;color:var(--tx3);margin-top:3px;}
+.bc{display:flex;flex-direction:column;gap:9px;}
+.br{display:flex;align-items:center;gap:9px;}
+.bl{font-size:12px;color:var(--tx2);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bt{flex:1;background:var(--s3);border-radius:3px;height:9px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;}
+.bv{font-size:12px;color:var(--tx);width:50px;text-align:right;}
+
+/* Activity table */
+.frow{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;}
+.fsel{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:7px 11px;border-radius:6px;font-size:12px;outline:none;}
+.fsel:focus{border-color:var(--ac);}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:400px;overflow-y:auto;}
+.dt{width:100%;border-collapse:collapse;font-size:13px;}
+.dt th{text-align:left;padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);border-bottom:2px solid var(--border);background:var(--surface);}
+.dt td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--tx);}
+.dt tr:hover td{background:var(--s2);}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;}
+.bon{background:#0c2a3a;color:#38bdf8;}.bof{background:#1a2a1a;color:#86efac;}.bty{background:var(--s3);color:var(--tx2);}
+.hp{display:inline-block;background:rgba(0,229,195,.1);color:var(--ac);padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;}
+
+/* TRAINER CARDS */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-bottom:24px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.tch{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.tav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+.tn{font-size:13px;font-weight:600;}.tr2{font-size:11px;color:var(--tx2);}
+.tth{font-size:20px;font-weight:700;color:var(--ac);}.ttl{font-size:10px;color:var(--tx2);}
+.tcb{padding:14px 16px;}
+.tmr{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.tm{font-size:11px;color:var(--tx2);width:65px;}.tt{flex:1;background:var(--s3);border-radius:3px;height:7px;overflow:hidden;}.tf{height:100%;border-radius:3px;}.tv{font-size:11px;color:var(--tx);width:35px;text-align:right;}
+
+/* KRA */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-bottom:22px;}
+.kca{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.kw{font-size:30px;font-weight:700;margin-bottom:5px;}.ka{font-size:13px;font-weight:600;margin-bottom:7px;}.kc2{font-size:11px;color:var(--tx2);line-height:1.6;}
+.kbt{background:var(--s3);border-radius:4px;height:5px;overflow:hidden;margin-top:11px;}
+.kbf{height:100%;border-radius:4px;}.ksc{font-size:10px;color:var(--tx3);margin-top:3px;}
+
+/* LOG FORM */
+.log-form{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px;}
+.lft{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;}
+.fi{background:var(--surface);border:1px solid var(--border);color:var(--tx);padding:9px 11px;border-radius:6px;font-size:13px;outline:none;width:100%;}
+.fi:focus{border-color:var(--ac);}
+.fsubrow{display:flex;gap:10px;align-items:center;margin-top:12px;}
+.fsub{padding:10px 20px;background:var(--ac);color:#0c0d14;border:none;border-radius:7px;font-size:13px;font-weight:700;}
+.fsub:hover{background:#00c4a8;}
+.ferr{font-size:12px;color:var(--red);}
+.fok{font-size:12px;color:var(--green);}
+
+/* SESSION PLANNER TILES */
+.phase-sec{margin-bottom:30px;}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.ph::after{content:'';flex:1;height:1px;background:var(--border);}
+.pl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 10px;border-radius:4px;white-space:nowrap;}
+.tgr{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:5px;}
+.tile{cursor:pointer;border-radius:6px;overflow:hidden;transition:transform .12s,box-shadow .12s;border:1px solid transparent;}
+.tile:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.ti{padding:15px 13px 13px;height:118px;display:flex;flex-direction:column;justify-content:space-between;}
+.tdn{font-size:25px;font-weight:700;opacity:.17;position:absolute;right:9px;bottom:5px;}
+.tile{position:relative;}
+.tlb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.7;}
+.ttt{font-size:13px;font-weight:600;line-height:1.3;margin-top:3px;}.tc2{font-size:10px;opacity:.6;margin-top:auto;}
+.tw2{grid-column:span 2;}
+.c0{background:linear-gradient(135deg,#0d3b3b,#0a4a45);border-color:#0e5550;}
+.c1{background:linear-gradient(135deg,#0d2b5e,#0a3570);border-color:#0e3d82;}
+.c2{background:linear-gradient(135deg,#2d0a5e,#380a70);border-color:#3e0d82;}
+.c3{background:linear-gradient(135deg,#0a3d1a,#0c4a20);border-color:#0e5926;}
+.c4{background:linear-gradient(135deg,#4a1a0a,#5a200c);border-color:#6e270e;}
+.c5{background:linear-gradient(135deg,#1a0a4a,#220c5a);border-color:#280e6e;}
+.ct2{background:linear-gradient(135deg,#3d0a1a,#4a0c22);border-color:#5e0e2a;}
+.cf{background:linear-gradient(135deg,#1a2a00,#223300);border-color:#2a3f00;}
+.cg{background:linear-gradient(135deg,#0a2a3d,#0c3349);border-color:#0e3f5e;}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px);}
+.mo.open{display:flex;}
+.mbox{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:880px;animation:msl .2s ease;margin:auto;overflow:hidden;}
+@keyframes msl{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+.mab{height:4px;width:100%;}
+.mhdr{padding:20px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;}
+.mtag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 8px;border-radius:4px;margin-bottom:7px;}
+.mtit{font-size:20px;font-weight:700;line-height:1.2;}
+.mcl{background:none;border:none;color:var(--tx2);font-size:21px;padding:4px 7px;}
+.mcl:hover{color:var(--ac2);}
+.mbdy{padding:20px 24px 26px;}
+.agb{background:var(--s2);border-left:3px solid var(--ac2);padding:13px 15px;border-radius:0 5px 5px 0;margin-bottom:20px;font-size:13.5px;line-height:1.65;color:var(--tx2);}
+.agl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ac2);font-weight:700;margin-bottom:5px;}
+.sct{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tx2);margin-bottom:9px;margin-top:16px;}
+.stbl{width:100%;border-collapse:collapse;font-size:13px;}
+.stbl th{text-align:left;padding:8px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);border-bottom:1px solid var(--border);}
+.stbl td{padding:8px 11px;border-bottom:1px solid rgba(42,44,66,.5);vertical-align:top;color:var(--tx2);line-height:1.5;}
+.stbl tr:hover td{background:var(--s2);}
+.stbl .brk td{background:var(--bg)!important;color:var(--tx3);font-size:12px;font-style:italic;padding:5px 11px;}
+.tb2{display:inline-block;background:rgba(0,229,195,.1);color:var(--ac);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.lb2{display:inline-flex;align-items:center;gap:3px;color:var(--ac);font-size:11px;border:1px solid rgba(0,229,195,.2);padding:2px 7px;border-radius:4px;transition:background .15s;}
+.lb2:hover{background:rgba(0,229,195,.1);}
+.sw{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px;}
+.st2{background:var(--s2);border:1px solid var(--border);padding:4px 9px;border-radius:20px;font-size:11px;color:var(--tx2);}
+
+/* EDIT row */
+.edit-btn{background:none;border:1px solid var(--border);color:var(--tx3);padding:2px 7px;border-radius:4px;font-size:11px;transition:all .15s;}
+.edit-btn:hover{color:var(--ac);border-color:var(--ac);}
+.edit-row td{background:var(--s2)!important;}
+.edit-row input,.edit-row select{background:var(--s3);border:1px solid var(--border);color:var(--tx);padding:5px 8px;border-radius:4px;font-size:12px;width:100%;}
+.edit-row input:focus,.edit-row select:focus{outline:none;border-color:var(--ac);}
+.save-btn{background:var(--ac);color:#0c0d14;border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;}
+.cancel-btn{background:none;border:1px solid var(--border);color:var(--tx2);padding:4px 10px;border-radius:4px;font-size:11px;}
+.edited-mark{font-size:9px;color:var(--ac);margin-left:4px;}
+
+@media(max-width:650px){.g2,.g3{grid-template-columns:1fr;}.tw2{grid-column:span 1;}.krow{grid-template-columns:repeat(2,1fr);}.panel{padding:14px;}.form-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="ll"><div class="li">Z</div><div class="lt">Training Hub</div></div>
+  <div class="ls">Zerodha · Training & Development · Internal Tool</div>
+  <div class="roles">
+    <div class="rc sel" data-role="admin" onclick="selRole('admin',this)">
+      <div class="ri">🛡️</div><div class="rn">Admin</div>
+      <div class="rd">Freeda · Full access, KRA framework & all trainers</div>
+      <div class="ra"><span class="ap ap1">Dashboard</span><span class="ap ap1">KRA Framework</span><span class="ap ap1">All Planners</span></div>
+    </div>
+    <div class="rc" data-role="trainer" onclick="selRole('trainer',this)">
+      <div class="ri">👨‍🏫</div><div class="rn">Trainer</div>
+      <div class="rd">Log hours, my KRA progress & edit sessions</div>
+      <div class="ra"><span class="ap ap4">My KRA %</span><span class="ap ap4">Log Hours</span><span class="ap ap4">Edit Sessions</span></div>
+    </div>
+    <div class="rc" data-role="guest" onclick="selRole('guest',this)">
+      <div class="ri">👁️</div><div class="rn">Guest</div>
+      <div class="rd">Read-only access to session planners</div>
+      <div class="ra"><span class="ap ap3">Session Planner</span><span class="ap ap3">Read Only</span></div>
+    </div>
+  </div>
+  <!-- Trainer sub-selection -->
+  <div class="tsub-row" id="trainerSubRow">
+    <button class="tsub-btn" id="tsubGirish" onclick="selSubTrainer('girish',this)">👨‍🏫 Girish</button>
+    <button class="tsub-btn" id="tsubHarish" onclick="selSubTrainer('harish',this)">👨‍💼 Harish</button>
+  </div>
+  <div class="lf">
+    <div class="liw" id="pwWrap">
+      <input class="lin" type="password" id="pwIn" placeholder="Enter password…" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="tpw" onclick="togglePw()">👁</button>
+    </div>
+    <div class="gh" id="ghint" style="display:none">No password needed for Guest — press Sign In</div>
+    <div class="le" id="lerr"></div>
+    <button class="lb" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+  <div class="nav">
+    <div class="nl"><div class="nli">Z</div><div><div class="nlt">Training Hub</div><div class="nls">Zerodha · T&D</div></div></div>
+    <div class="tabs" id="navTabs">
+      <button class="tab active" data-tab="dash" onclick="swTab('dash',this)">📊 Dashboard</button>
+      <button class="tab" data-tab="prog" onclick="swTab('prog',this)">👥 Trainer Progress</button>
+      <button class="tab" data-tab="plan" onclick="swTab('plan',this)">📋 Support Training <span class="nbadge">26 days</span></button>
+      <button class="tab" data-tab="ni" onclick="swTab('ni',this)">📁 Non-Individual <span class="nbadge">Soon</span></button>
+      <button class="tab" data-tab="cal" onclick="swTab('cal',this)">📅 Monthly Planner</button>
+    </div>
+    <div class="nub" id="navUser" style="gap:10px;">
+      <span onclick="openResetPw()" id="changePwLink" style="display:none;cursor:pointer;color:var(--tx3);font-size:11px;white-space:nowrap" title="Change your password">🔑 reset pw</span>
+      <div onclick="doLogout()" style="display:flex;align-items:center;gap:6px;cursor:pointer;" title="Click to log out">
+        <div class="nud" id="nud"></div><span id="nul"></span><span style="color:var(--tx3);font-size:11px">· logout</span>
+      </div>
+    </div>
+<!-- Reset Password Modal -->
+<div class="rpw-ov" id="rpwOverlay" onclick="if(event.target===this)closeResetPw()">
+  <div class="rpw-box">
+    <div class="rpw-title">🔑 Reset Password</div>
+    <input class="rpw-inp" id="rpwCur"  type="password" placeholder="Current password">
+    <input class="rpw-inp" id="rpwNew"  type="password" placeholder="New password (min 6 chars)">
+    <input class="rpw-inp" id="rpwConf" type="password" placeholder="Confirm new password">
+    <div class="rpw-msg" id="rpwMsg"></div>
+    <div class="rpw-btns">
+      <button class="rpw-save"   onclick="saveResetPw()">Save</button>
+      <button class="rpw-cancel" onclick="closeResetPw()">Cancel</button>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="tab-dash">
+    <div class="sh" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div><div class="st">Training & Development Dashboard</div><div class="ss">Zerodha Training Team · December 2025 – Present · <span id="dashYearLabel" style="color:var(--ac)"></span></div></div>
+      <button class="dl-btn" id="dlDashBtn" onclick="downloadDashboardExcel()" style="display:none">⬇ Download Excel</button>
+    </div>
+    <div class="krow" id="kpiRow"></div>
+    <div class="g2">
+      <div class="card"><div class="ct">Monthly Hours by Trainer</div><div id="mChart"></div></div>
+      <div class="card"><div class="ct">Hours by Trainer (All Time)</div><div class="bc" id="tChart"></div></div>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="ct">Session Type (Online vs Offline)</div><div class="bc" id="stChart"></div></div>
+      <div class="card"><div class="ct">Top Activity Types (Hours)</div><div class="bc" id="atChart"></div></div>
+    </div>
+    <div class="card">
+      <div class="ct">Activity Log</div>
+      <div class="frow" style="flex-wrap:wrap;gap:8px;">
+        <select class="fsel" id="fmth" onchange="renderTable()"><option value="all">All Months</option></select>
+        <select class="fsel" id="ftrn" onchange="renderTable()"><option value="all">All Trainers</option></select>
+        <select class="fsel" id="ftyp" onchange="renderTable()"><option value="all">All Types</option></select>
+        <input class="fsel-hrs" id="fMinHrs" type="number" min="0" step="0.5" placeholder="Min hours…" onchange="renderTable()" title="Filter by minimum hours">
+      </div>
+      <div class="tw"><table class="dt"><thead><tr><th>Month</th><th>Type</th><th>Details</th><th>Trainer</th><th>Session</th><th>Topic</th><th>Hours</th></tr></thead><tbody id="tbdy"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TRAINER PROGRESS -->
+  <div class="panel" id="tab-prog">
+    <div class="sh"><div class="st">Trainer Progress & KRA</div><div class="ss">Key Responsibility Areas & Hour Log</div></div>
+    <!-- LOG FORM (trainer/admin only) -->
+    <div class="log-form" id="logFormWrap">
+      <div class="lft">➕ Log Activity / Productive Hours</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">Your Name</label><select class="fi" id="logTrainer"><option>Gaurav Kumar</option><option>Raju Vernekar</option><option>Freeda Reshma Dsouza</option><option>Harish Bhat</option><option>Girish A</option></select></div>
+        <div class="fg"><label class="fl">Month</label><select class="fi" id="logMonth"><option>January 2026</option><option>February 2026</option><option>March 2026</option><option>April 2026</option><option>May 2026</option><option>June 2026</option><option>July 2026</option><option>August 2026</option><option>September 2026</option><option>October 2026</option><option>November 2026</option><option>December 2026</option></select></div>
+        <div class="fg"><label class="fl">Activity Type</label><select class="fi" id="logType"><option>Support Training</option><option>Refresher</option><option>Assessment</option><option>Project Maven</option><option>Mock Calls</option><option>Varsity</option><option>OJT</option><option>Webinar</option><option>NRI Team Training</option><option>Fresh Hires Training</option><option>Other</option></select></div>
+        <div class="fg"><label class="fl">Session</label><select class="fi" id="logSession"><option>Offline</option><option>Online</option></select></div>
+        <div class="fg"><label class="fl">Details / Batch</label><input class="fi" id="logDetails" placeholder="e.g. Batch 4 - C360"></div>
+        <div class="fg"><label class="fl">Topic Covered</label><input class="fi" id="logTopic" placeholder="e.g. Order Types"></div>
+        <div class="fg"><label class="fl">Hours</label><input class="fi" id="logHours" type="number" min="0.25" step="0.25" placeholder="e.g. 4.5"></div>
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="logDate" type="date"></div>
+      </div>
+      <div class="fsubrow">
+        <button class="fsub" onclick="logActivity()">Save Activity</button>
+        <span class="ferr" id="logErr"></span><span class="fok" id="logOk"></span>
+      </div>
+    </div>
+    <div class="dl-row" id="progDlRow" style="display:none">
+      <button class="dl-btn" onclick="downloadDashboardExcel()">⬇ Download Trainer Dashboard (Excel)</button>
+      <span style="font-size:11px;color:var(--tx3)">Month-wise breakdown of all productive hours</span>
+    </div>
+    <div class="tgrid" id="trCards"></div>
+    <div id="personalKRAWrap" style="display:none"></div>
+    <div id="kraFrameworkSection">
+      <div class="sh" style="margin-top:4px"><div class="st" style="font-size:16px">KRA Framework</div><div class="ss">Competency weights for the training team (Total = 100%)</div></div>
+      <div class="kgrid" id="kraCards"></div>
+    </div>
+    <div class="card" id="trainerCompCard"><div class="ct">Trainer Comparison (Total Hours)</div><div class="bc" id="tcmpChart" style="margin-top:6px"></div></div>
+  </div>
+
+  <!-- SESSION PLANNER -->
+  <div class="panel" id="tab-plan">
+    <div class="sh"><div class="st">Support Training – Session Planner</div><div class="ss">26 Days · 2 Mid Assessments · 1 Final Test · Click any tile to view session · <span id="canEditNote" style="color:var(--ac);font-size:12px"></span></div></div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px;font-size:12px;" id="legend"></div>
+    <div id="planTiles"></div>
+  </div>
+
+  <!-- MONTHLY PLANNER -->
+  <div class="panel" id="tab-cal">
+    <div class="sh"><div class="st">📅 Monthly Planner</div><div class="ss">Plan and schedule sessions, meetings, and activities. Click any day to add or edit events.</div></div>
+    <div id="calWrap"></div>
+  </div>
+
+  <!-- NON-INDIVIDUAL -->
+  <div class="panel" id="tab-ni">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;">
+      <div style="font-size:52px;margin-bottom:14px">📁</div>
+      <div style="font-size:21px;font-weight:700;margin-bottom:7px">Non-Individual Account Session Planner</div>
+      <div style="font-size:13px;color:var(--tx2);max-width:400px;line-height:1.6">This section will hold the Non-Individual (HUF, Corporate, Partnership etc.) training module. Share the content and it will be built here.</div>
+      <div style="margin-top:20px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--tx2);">🚧 Coming Soon — awaiting content from training team</div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="evm-ov" id="evmOverlay" onclick="if(event.target===this)closeEvtModal()">
+  <div class="evm-box">
+    <div class="evm-hdr">
+      <div class="evm-title" id="evmTitle2"></div>
+      <button class="evm-close" onclick="closeEvtModal()">✕</button>
+    </div>
+    <div id="evmBody"></div>
+  </div>
+</div>
+
+<!-- SESSION MODAL -->
+<div class="mo" id="mo" onclick="clModalBg(event)">
+  <div class="mbox">
+    <div class="mab" id="mab"></div>
+    <div class="mhdr">
+      <div style="flex:1"><div class="mtag" id="mtag"></div><div class="mtit" id="mtit"></div></div>
+      <button class="mcl" onclick="clModal()">✕</button>
+    </div>
+    <div class="mbdy" id="mbdy"></div>
+  </div>
+</div>
+
+<script>
+// ====== DATA ======
+const SP_BASE = [{"sheet": "Day 0", "title": "Day 0 - Session Plan", "agenda": "No agenda to teach and we will be more focused on making the trainess comfortable, understand the trainees and their background followed by the fun activites and end the day in a good and comfortable note, if times permits, the Introduction to the stock market  and the brief introduction to the Zerodha's journey in the last decade, speak about founders (key people), philosophy and Moat of the organisation and set the right expectations for the trainees (Explain the Breaks and timings)", "topics": [{"type": "topic", "text": "Introduction of the trainees and Why did they choose Zerodha?", "time": "30", "conductor": "Freeda/Harish/Girish", "link": ""}, {"type": "topic", "text": "Introduce yourself and your interests, experience and role with Zerodha", "time": "10", "conductor": "Freeda/Harish/Girish", "link": ""}, {"type": "topic", "text": "Explain the journey of Zerodha", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Explain the office timings and trainings, do's and dont's", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": ["Explain your personaliity in one line - relate yourself to animals, birds, or person", "Adjectives to the first letter - To make sure we remember their name", "We need to change day 15 topic", "Things to add", "MTF related topics", "2 Assessments", "Partner products and Rainmatter", "How to use Inside,Trading QnA, articles, bulletin, Zconnect", "surveillance measures", "Charts, terminal , alerts, nudges and all the latest features compare with the other brokers", "Account closure, all types of modifications through rekyc", "FIFO calculations on corporate actions", "KIte API", "Minor acocunt Faqs", "Giftiing, Transfer and conversion of securities", "Death claim", "KIte error messages or rejection order reasons", "Support tool and Intranet, pi index", "CMR, Nominee", "Zerodha data safety", "Gsec, NCDs", "NISM exams"], "is_test": false, "summary": "Orientation & Zerodha Intro"}, {"sheet": "Day 1", "title": "Day 1 - Session Plan", "agenda": "At the end of the session the trainess should be able understand the basics of markets, how were the markets even formed, the eco sysytem, and market jagrons. Also, ensure the account is opened by all the trainees, the basics of DDPI/POA and why was it even needed?", "topics": [{"type": "topic", "text": "History of stock market in India,", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/introduction-to-stock-markets/"}, {"type": "topic", "text": "Introduction to the stock Market (Remaining topic from the previous day), Primary markert (IPO), Secondary Market, Demat account & Trading account", "time": "40", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/introduction-to-stock-markets/"}, {"type": "topic", "text": "What are the exchanges in India? Purpose of exchanges, Are there any regional exchanges? what happened to the regional exchanges? What is NSE , BSE , MCX, NCDEX, MSEI?", "time": "10", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/chapter/regulators/"}, {"type": "topic", "text": "Exchange and economy , Foreign Portfolio Investors.", "time": "10", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "What is Demat & trading account?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening"}, {"type": "topic", "text": "Market structure intermediaries (SEBI,Exchange, CDSL, Clearing corporations, Brokers, Sub Brokers)", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/chapter/regulators/"}, {"type": "topic", "text": "Market Beneficiaries (Investors, Banks, Organisations/ Companies) etc", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/introduction-to-stock-markets/"}, {"type": "topic", "text": "Market Jagrons (Equity, Derivative, Stocks, Shares, Quantity, Spot)", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/chapter/option-jargons/"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "POA, DDPI, EDIS", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/ddpi/articles/activate-ddpi"}, {"type": "topic", "text": "What is POA, DDPI, Why is it needed?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/ddpi/articles/activate-ddpi"}, {"type": "topic", "text": "Why the change from POA to DDPI & EDIS?- Karvy issue", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/ddpi/articles/activate-ddpi"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "How to activate DDPI & EDIS?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/ddpi/articles/activate-ddpi"}, {"type": "topic", "text": "How to revoke DDPI or EDIS and Charges, what is authorisation of shares?, Tpin & Validity", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/ddpi/articles/activate-ddpi"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "40", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "CMR (Client Master Report) – what it is, how to download and use", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/dp-id-and-bank-details/cmr/articles/what-is-the-cmr-copy-and-where-can-i-get-it"}, {"type": "topic", "text": "Nominee – adding and modifying nominee details", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/nomination-process/articles/add-nominee-online-zerodha"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": ["Use the movies references like Wolf of Wall Street, Margin call, Scam 1992, Big Bull, Guru"], "is_test": false, "summary": "Market Basics & DDPI/POA"}, {"sheet": "Day 2", "title": "Day 2 - Session Plan", "agenda": "The trainees should have the basic understanding of the Account opening, Bank accounts, DP charges, AMC charges, Payin and Payouts", "topics": [{"type": "topic", "text": "Account Opening Session- Max 3 hours", "time": "60", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening"}, {"type": "topic", "text": "Individual account (Complete), HNI, HUF, NRI, Minor", "time": "60", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual"}, {"type": "topic", "text": "ACOP updates, signup flow changes and account opening SOP", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening"}, {"type": "topic", "text": "RDD", "time": "", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Continuation", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Settlement Cycle", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/what-does-settlement-cycle-i-e-rolling-settlement-mean"}, {"type": "topic", "text": "Primary bank/ secondary bank, How to add and remove?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/funds/adding-bank-accounts"}, {"type": "topic", "text": "Unmapped Bank Transfer", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/funds/adding-bank-accounts"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Add funds (UPI/ NETBANKING/NEFT/ IMPS/ RTGS/ CHEQUE)", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/funds"}, {"type": "topic", "text": "Payout", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/funds/fund-withdrawal/withdrawal-process/articles/how-do-i-withdraw-money-from-my-trading-account"}, {"type": "topic", "text": "Kite mandate", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/funds"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "What are the charges involved in trades and DP charges (For EQ, MF, ETF, LIQUID FUNDS, Gender Based)", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean"}, {"type": "topic", "text": "Why DP charges dont appear in Contract note?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean"}, {"type": "topic", "text": "AMC charges (BSDA/ Non BSDA) and AMC across account types.", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-is-the-annual-maintenance-charge"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "", "link": ""}, {"type": "topic", "text": "Minor Account – FAQs and account opening process", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/minor/minor-online/articles/minor-account-faqs"}, {"type": "topic", "text": "Account closure – how to close a Zerodha account", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/general-profile-questions/articles/how-do-i-close-my-zerodha-account"}, {"type": "topic", "text": "All types of modifications through Re-KYC", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/your-profile/kyc-re-activation/articles/re-activate-my-account"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Account Opening & Charges"}, {"sheet": "Day 3", "title": "Day 3 - Session Plan", "agenda": "The trainees should be able to understand the market timings, auto-square off and it's importance. The trainess should be able to place the order and understrand the product types. The Limit order principles, and FIFO at the end of the day", "topics": [{"type": "topic", "text": "Market Timings, Pre open session, Post Market session. IPO (Listing day timings)", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/market-sessions/articles/what-are-the-market-timings"}, {"type": "topic", "text": "Leverage (Why leverage, Importance of leverage, Zerodha's stand on leverage, Calculations on leverage for Trainees)", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/"}, {"type": "topic", "text": "What is auto sqr off? Importance of auto sqr off?", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/market-sessions/articles/intraday-auto-square-off-timings"}, {"type": "topic", "text": "Auto sqr off timing (EQ , FNO, CDS, MCX)", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/market-sessions/articles/intraday-auto-square-off-timings"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Consequence of failure to sqr off MIS positions (Short delivery for short position & C/F with RMS adhoc margin for long position)", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/market-sessions/articles/intraday-auto-square-off-timings"}, {"type": "topic", "text": "Product types - CNC, MIS , NRML, How to Place ?, Conversion, Leverage and Exit", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/"}, {"type": "topic", "text": "What is short selling and How is it used across Product types? Short sell in CNC- Can't be done", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-does-cnc-mis-and-nrml-mean"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Order Types: Market, Limit, Stop loss limit, Stop loss market,", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/others-kite/articles/order-types-and-execution"}, {"type": "topic", "text": "How to Place and How is it used across Product types?", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-does-cnc-mis-and-nrml-mean"}, {"type": "topic", "text": "Principle of limit order", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/others-kite/articles/order-types-and-execution"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Principle of stoploss order", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/others-kite/articles/order-types-and-execution"}, {"type": "topic", "text": "FIFO & Price time priority", "time": "", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/difference-between-holdings-and-positions"}, {"type": "topic", "text": "Kite error messages and order rejection reasons", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/kite-web-and-mobile/articles/why-is-my-order-getting-rejected"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Order Types & Product Types"}, {"sheet": "Day 4", "title": "Day 4 - Session Plan", "agenda": "The Trainees should be able to understand the different order types likes Cover order, Quick Order, Ice Berg orders, including the GTT, and the edge cases we get for the GTT (the complete mechanism) and the AMO", "topics": [{"type": "topic", "text": "Cover Order, How to Place, Conversion, Leverage and Exit, Why its important?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/"}, {"type": "topic", "text": "Quick order, How to Place, Conversion, Leverage and Exit, Why its important?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Ice berg order, How to Place, Conversion, Leverage and Exit, Why its important and beed of it?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/"}, {"type": "topic", "text": "GTT order, Why its important?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/gtt/articles/what-is-the-good-till-triggered-gtt-feature"}, {"type": "topic", "text": "GTT single and OCO, explain if GTT is available for all the instruments", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/gtt/articles/what-is-the-good-till-triggered-gtt-feature"}, {"type": "topic", "text": "Explain the details of the GTT, why it can fail, edge cases.", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/gtt/articles/what-is-the-good-till-triggered-gtt-feature"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "What are basket orders? How and where to use them ?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/kite-features/basket-order/articles/kite-basket-orders"}, {"type": "topic", "text": "All features of basket order", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/kite-features/basket-order/articles/kite-basket-orders"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "AMO order", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/auto-amo"}, {"type": "topic", "text": "Stock SIP order and brief explanation", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/stock-sip/articles/kite-sip-order"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Kite API – overview and use cases", "time": "20", "conductor": "Harish/Girish", "link": "https://kite.trade/docs/connect/v3/"}, {"type": "topic", "text": "Charts, terminal, alerts, nudges and latest Kite features – comparison with other brokers", "time": "30", "conductor": "Harish/Girish", "link": "https://kite.trade/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Cover, GTT & Basket Orders"}, {"sheet": "Day 5", "title": "Day 5 - Session Plan", "agenda": "Trainees should understand how F&O contracts work, the margin framework (SPAN & Exposure), options moneyness, the MTM settlement process, rollover, ban period, and F&O settlement types (cash vs physical).", "topics": [{"type": "topic", "text": "Introduction to Derivatives – Forwards, Futures, Options and why they exist", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/futures-trading/"}, {"type": "topic", "text": "History of Futures and options", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/futures-trading/"}, {"type": "topic", "text": "Margins involed in F&O Span, exposure, Var and ELM", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-leverage-and-product-and-order-types/articles/different-types-of-margin"}, {"type": "topic", "text": "Margin calculation - live demo using Zerodha Margin Calculator", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/margin-calculator/"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Call options – what they are, payoff diagram and moneyness", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/option-theory/"}, {"type": "topic", "text": "Put options and moneyness of option", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/option-theory/"}, {"type": "topic", "text": "ITM, ATM and OTM – explained with practical examples", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/chapter/moneyness-of-an-option-contract/"}, {"type": "topic", "text": "Greeks overview: Delta, Theta, Vega – what traders must know", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/option-theory/"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "MTM (Mark to Market) in futures – daily settlement mechanism", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/mark-to-market-mtm-in-a-futures-contract-at-zerodha"}, {"type": "topic", "text": "F&O settlement (Cash and Physical)", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Rollover – what it means, charges, and when to rollover", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/what-does-rollover-mean-and-what-are-the-charges-involved"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "F&O Ban period – why contracts enter ban and implications", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/why-do-futures-and-option-scrips-enter-ban-period-what-does-it-mean"}, {"type": "topic", "text": "Rollover during ban period – rules and restrictions", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/what-does-rollover-mean-and-what-are-the-charges-involved"}, {"type": "topic", "text": "Margin calculator hands-on practice – live scenarios", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "", "link": ""}, {"type": "topic", "text": "MTF (Margin Trading Facility) – overview and how it works", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-trading-facility/articles/margin-trading-facility-mtf-faqs"}, {"type": "topic", "text": "MTF interest, charges, and eligibility criteria", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-trading-facility/articles/margin-trading-facility-mtf-faqs-charges"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "F&O Basics & Margins"}, {"sheet": "Day 6", "title": "Day 6- Session Plan", "agenda": "Trainees will understand the short delivery mechanism, auction market participation, cash settlement, and the margin benefit available for hedged positions and covered calls.", "topics": [{"type": "topic", "text": "What is short delivery? Causes and consequences for the seller", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/what-is-short-delivery-and-what-are-its-consequences"}, {"type": "topic", "text": "Auction market – how it works and how to participate", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/auctions/articles/participation-in-the-auction"}, {"type": "topic", "text": "Cash settlement when no fresh sellers available in auction", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/auctions/articles/participation-in-the-auction"}, {"type": "topic", "text": "DP charges for BTST trades – why they are charged", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Hedged positions – what qualifies as a hedge at Zerodha?", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-leverage-and-product-and-order-types/articles/hedged-position-margins"}, {"type": "topic", "text": "Margin benefit for hedged positions – calculation and examples", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-leverage-and-product-and-order-types/articles/hedged-position-margins"}, {"type": "topic", "text": "Covered call strategy overview – buy stock, sell call option", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/option-strategies/"}, {"type": "topic", "text": "Margin benefit for covered call positions", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/module/option-strategies/"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common customer queries on short delivery and auction", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/what-is-short-delivery-and-what-are-its-consequences"}, {"type": "topic", "text": "RMS square-off for undelivered short positions", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mock scenario – calculate margin for a hedged F&O position", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "F&O strategy overview: Bull Call Spread, Long Straddle", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Common customer queries on margin benefits", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "MTF – pledge mechanism, auto square-off, and risk management", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-trading-facility/articles/margin-trading-facility-mtf-faqs-pledge"}, {"type": "topic", "text": "SLB (Securities Lending and Borrowing) – what it is and how to use it", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/securities-lending-and-borrowing/articles/what-is-slb-and-how-to-avail"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Short Delivery & Hedging"}, {"sheet": "Day 7", "title": "Day 7- Session Plan", "agenda": "Deep dive into physical settlement – which contracts are eligible, obligations at expiry, associated charges, Zerodha's risk management approach, and handling customer queries.", "topics": [{"type": "topic", "text": "Recap – cash vs physical settlement in F&O", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Which stocks are eligible for physical settlement? Criteria", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Long position at expiry – delivery obligation and timeline", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Short position at expiry – what the seller must deliver", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Charges at physical settlement – custody, DP, STT", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Physical delivery risk management at Zerodha", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How positions are auto-squared in the last week before expiry", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Margin increase in last 4 days before contract expiry", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common customer queries on physical settlement", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "How to avoid unwanted physical settlement – practical steps", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Case studies – physical settlement scenarios and outcomes", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Physical settlement vs cash settlement – side-by-side comparison", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "SEBI regulations on physical settlement – key circulars", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Mock customer call on a physical settlement issue", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Surveillance measures – ASM, GSM, ESM, PCAS and IRP explained", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/trading-categories-and-groups/articles/what-is-asm"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Physical Settlement"}, {"sheet": "Day 8", "title": "Day 8- Session Plan", "agenda": "Trainees will understand execution range restrictions in options, the Orbis (trade all strikes) feature, STT calculation across segments, and how freak trades occur and are managed.", "topics": [{"type": "topic", "text": "Why options orders get rejected – execution range concept", "time": "20", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/margin-leverage-and-product-and-order-types/articles/what-is-f-o-execution-range-and-why-do-some-open-orders-outside-f-o-execution-range-get-cancelled"}, {"type": "topic", "text": "BankNifty order rejection – specific range limits and workarounds", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/margin-leverage-and-product-and-order-types/articles/what-is-f-o-execution-range-and-why-do-some-open-orders-outside-f-o-execution-range-get-cancelled"}, {"type": "topic", "text": "Who can use Orbis and eligibility criteria", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/oi-restriction-open-orbis"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "STT – Securities Transaction Tax: what it is and who pays it", "time": "20", "conductor": "", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/how-is-the-securities-transaction-tax-stt-calculated"}, {"type": "topic", "text": "STT on expired ITM options", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/how-is-the-securities-transaction-tax-stt-calculated"}, {"type": "topic", "text": "What are freak trades? How they happen in volatile F&O markets", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/will-zerodha-square-off-my-positions-in-case-of-freak-trades"}, {"type": "topic", "text": "Importance of limit orders over market orders in options", "time": "20", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/general-kite/others-kite/articles/order-types-and-execution"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Zerodha's approach to freak trades and execution range protection", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/will-zerodha-square-off-my-positions-in-case-of-freak-trades"}, {"type": "topic", "text": "Common F&O order rejection reasons and how to handle them", "time": "20", "conductor": "", "link": ""}, {"type": "topic", "text": "Customer queries on STT, execution range and order rejections", "time": "20", "conductor": "", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Quarterly settlement (QS) – what it is and why SEBI mandates it", "time": "30", "conductor": "", "link": "https://support.zerodha.com/category/console/profile/quarterly-settlement/articles/what-is-quarterly-settlement"}, {"type": "topic", "text": "Retention statement – what it shows and how to interpret it", "time": "20", "conductor": "", "link": "https://support.zerodha.com/category/console/profile/quarterly-settlement/articles/what-is-quarterly-settlement"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "", "link": ""}, {"type": "topic", "text": "Zerodha data safety – how customer data is protected", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/privacy-policy/"}, {"type": "topic", "text": "Support tool and Intranet, Pi Index – overview for support agents", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Execution Range & STT"}, {"sheet": "Day 9", "title": "Day 9- Session Plan", "agenda": "Trainees will understand corporate actions – with focus on dividends: ex-date vs record date, payout timelines, TDS implications, NRI dividend treatment, and how buy average is calculated.", "topics": [{"type": "topic", "text": "Introduction to Corporate Actions – types and their significance", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Ex-date vs Record date – key difference and how price adjusts", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "topic", "text": "What is a dividend? How it is declared and announced", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "topic", "text": "How and when dividends are credited to your account", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "TDS on dividends – when it is deducted and applicable rates", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "topic", "text": "NRI-specific rules on dividends – tax and credit process", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/nri-account-opening/process-nri/articles/how-to-open-an-account-as-a-nri"}, {"type": "topic", "text": "Dividends for F&O positions – what happens to futures contracts?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "topic", "text": "Common dividend-related customer queries and resolutions", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/dividends/articles/dividends"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Buy average in Zerodha – how it is calculated", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "CNC buy and sell on the same day – impact on buy average", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "Why buy average sometimes appears incorrect after corporate actions", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "P&L calculation – unrealised vs realised gains in Console", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/reports/profit-and-loss-report/articles/where-can-i-get-my-profit-and-loss-reports-from"}, {"type": "topic", "text": "Holdings display in Console vs Kite – differences", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/where-can-i-see-the-shares-i-ve-purchased"}, {"type": "topic", "text": "Mock queries – dividends and buy average scenarios", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "FIFO calculations on corporate actions – practical examples", "time": "25", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/difference-between-holdings-and-positions"}, {"type": "topic", "text": "Gifting, transfer and conversion of securities", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/transfer-of-shares-and-conversion-of-shares/gifting-securities/articles/gift-shares"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Dividends & Buy Average"}, {"sheet": "Test 1", "title": "TEST 1 – Zerodha Support Training Assessment", "agenda": "", "topics": [], "suggestions": [], "is_test": true, "summary": "Assessment: Day 1–9"}, {"sheet": "Day 10", "title": "Day 10- Session Plan", "agenda": "Trainees will understand the bonus share corporate action – why companies issue bonus shares, how the share price and buy average are adjusted, timeline for credit, and common customer queries.", "topics": [{"type": "topic", "text": "What is a bonus issue? Why do companies announce bonus shares?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "topic", "text": "Bonus ratio – how additional shares are allotted", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "topic", "text": "Ex-date for bonus – how the share price adjusts on ex-date", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "topic", "text": "Timeline for bonus share credit to demat account", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Why bonus shares may not appear in holdings immediately", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "topic", "text": "How buy average changes after bonus shares are credited", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "Bonus entitlement calculation – practical examples", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "topic", "text": "F&O contract adjustment for bonus corporate actions", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/bonus/articles/bonus-issue"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common bonus-related customer queries and resolutions", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Bonus shares vs stock split – key differences", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Case studies – handling bonus share queries on support tickets", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Tax implications of bonus shares – cost basis and holding period", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Interim vs Final bonus – how they differ", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mock customer call – bonus shares scenario", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Death claim process at Zerodha – step by step", "time": "25", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/your-zerodha-account/transfer-of-shares-and-conversion-of-shares/death-claim/articles/what-is-to-be-done-upon-the-death-of-an-account-holder"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Bonus Shares"}, {"sheet": "Day 11", "title": "Day 11- Session Plan", "agenda": "Trainees will understand stock splits and buybacks – how stock splits affect price, quantity and buy average, types of buybacks (tender offer vs open market), and how to participate on Zerodha.", "topics": [{"type": "topic", "text": "What is a stock split? Why do companies split shares?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/stock-splits/articles/stock-split"}, {"type": "topic", "text": "Stock split ratio – how price and quantity change for the shareholder", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/stock-splits/articles/stock-split"}, {"type": "topic", "text": "Impact on buy average after a stock split", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "F&O contract adjustment for stock splits", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/stock-splits/articles/stock-split"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Stock split vs bonus shares – comparison", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Common customer queries on stock splits", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Introduction to buybacks – what they are and why companies do them", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "topic", "text": "Types of buyback: Tender offer vs Open market", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Tender offer buyback – eligibility, how to participate on Zerodha", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "topic", "text": "Timeline and process of a tender offer buyback", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "topic", "text": "Open market buyback – how it works and price discovery", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Buyback vs dividend – which is better for investors?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "topic", "text": "Tax implications of buyback proceeds for investors", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/buyback/articles/buyback"}, {"type": "topic", "text": "Common customer queries on stock splits and buybacks", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "GSEC and NCDs – what they are and how to invest via Zerodha", "time": "25", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/government-securities"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Stock Splits & Buybacks"}, {"sheet": "Day 12", "title": "Day 12- Session Plan", "agenda": "Trainees will understand the impact of mergers and spin-offs on holdings, share consolidation, F&O contract adjustments for corporate actions, devolvement in commodity options, MCX settlement, and currency derivatives.", "topics": [{"type": "topic", "text": "Mergers and spin-offs – impact on shareholder holdings", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/ca-others/articles/what-is-the-impact-of-mergers-and-spin-offs"}, {"type": "topic", "text": "How Zerodha handles merger events in customer accounts", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/ca-others/articles/what-is-the-impact-of-mergers-and-spin-offs"}, {"type": "topic", "text": "Consolidation of shares – what it means and how it affects holdings", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/stock-splits/articles/consolidation-of-shares"}, {"type": "topic", "text": "Reverse stock split – how it differs from forward stock split", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/stock-splits/articles/stock-split"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "F&O contract adjustment for corporate actions", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/adjustment-f-o-contracts"}, {"type": "topic", "text": "Common customer queries on mergers, consolidation and F&O adjustment", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Devolvement in commodity options – what happens at expiry", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/commoditytradingarticles/commodity-devolvement"}, {"type": "topic", "text": "MCX expiry and settlement process", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/commoditytrading"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Currency derivatives – how to trade on Kite", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/commoditytrading"}, {"type": "topic", "text": "Currency trading declaration – requirement and process", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/commoditytrading"}, {"type": "topic", "text": "Common currency and commodity trading queries", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Pledging and unpledging indetail with charges", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/pledging/articles/what-is-pledging"}, {"type": "topic", "text": "Customer queries on MCX settlement and devolvement", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Zerodha Partner products and Rainmatter – overview", "time": "20", "conductor": "Harish/Girish", "link": "https://rainmatter.com/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Mergers, MCX & Currency"}, {"sheet": "Day 13", "title": "Day 13- Session Plan", "agenda": "Trainees will understand the IPO process on Zerodha Console, OFS mechanism, employee category in OFS, how to assist customers with IPO applications, refunds, and related queries.", "topics": [{"type": "topic", "text": "What is an IPO? Primary market, SEBI filing and listing process", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ipo-basics"}, {"type": "topic", "text": "IPO application process on Zerodha Console", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ipo-application"}, {"type": "topic", "text": "IPO allotment – basis of allotment and how to check status", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ipo-allotment"}, {"type": "topic", "text": "IPO listing day – price discovery, timings and first-day volatility", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipo"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "What is OFS (Offer for Sale)? Difference from IPO", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ofs"}, {"type": "topic", "text": "How to apply for OFS on Zerodha – step by step", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ofs"}, {"type": "topic", "text": "Employee category in OFS – eligibility and discount benefit", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ofs"}, {"type": "topic", "text": "OFS price discovery and final allotment process", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common IPO and OFS customer queries", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "IPO refund process – UPI and ASBA refund timelines", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ipo-refund"}, {"type": "topic", "text": "UPI mandate for IPO applications – how it works", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/ipo-upi"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "FPO – what it is and how it differs from IPO", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/fpo"}, {"type": "topic", "text": "SME IPO vs Mainboard IPO – key differences", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/ipoarticles/sme-ipo"}, {"type": "topic", "text": "OS tickets SOP for IPO/OFS related queries", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "NISM exams – relevance for Zerodha employees and customers", "time": "15", "conductor": "Harish/Girish", "link": "https://www.nism.ac.in/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "IPO & OFS"}, {"sheet": "Day 14", "title": "Day 14- Session Plan", "agenda": "Trainees will understand the rights issue mechanism – RE trading, application process, fractional entitlements, renouncement – and will learn how to identify and handle unsolicited SMS tips and investment scams.", "topics": [{"type": "topic", "text": "What is a rights issue? Why companies raise funds this way", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/rights-issue/articles/rights-issue"}, {"type": "topic", "text": "How to apply for a rights issue on Zerodha – process", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/rights-issue/articles/rights-issue"}, {"type": "topic", "text": "Rights Entitlement (RE) – what it is and how to trade it", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/corporate-actions/rights-issue/articles/rights-issue-entitlement"}, {"type": "topic", "text": "Rights issue record date and entitlement calculation", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Fractional entitlement and renouncement of rights", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Lapsing of rights – consequences of not applying", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Common rights issue customer queries and escalations", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mergers, spin-offs, OFS, IPO – quick recap of all corporate actions", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "What are unsolicited stock tips and SMS investment scams?", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How to identify pump-and-dump schemes and tip-based trading", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Zerodha's position when customers act on unsolicited tips", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "SEBI regulations on investment advisors and registered entities", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How to handle customer calls on tip-related losses", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Role-play – customer who bought stocks based on SMS tips", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How to use Inside Zerodha, Trading Q&A, Articles, Bulletin and Zconnect", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/z-connect/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Rights Issue"}, {"sheet": "Day 15", "title": "Day 15- Session Plan", "agenda": "Trainees will have a complete understanding of Zerodha's brokerage structure, all statutory and regulatory charges, and will be able to compute the total cost of trading for any customer scenario.", "topics": [{"type": "topic", "text": "Zerodha's flat-fee brokerage model – overview and rationale", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/charges/"}, {"type": "topic", "text": "Brokerage for equity delivery, intraday, F&O – exact rates", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/charges/"}, {"type": "topic", "text": "Brokerage calculator – how to use it for any segment", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/brokerage-calculator/"}, {"type": "topic", "text": "Partial delivery brokerage – how it is charged", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Complete list of charges – STT, exchange turnover, SEBI, GST, stamp duty", "time": "30", "conductor": "Harish/Girish", "link": "https://zerodha.com/charges/"}, {"type": "topic", "text": "Charges for F&O – futures vs options breakdown", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Charges for currency and commodity segments", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "DP charges – comprehensive recap (EQ, ETF, Liquid Bees, BTST, contract note)", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "How to read a contract note – all line items explained", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "P&L calculation after accounting for all charges", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/reports/profit-and-loss-report/articles/where-can-i-get-my-profit-and-loss-reports-from"}, {"type": "topic", "text": "Hands-on brokerage calculator exercise – live computation", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/brokerage-calculator/"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Common customer queries on brokerage and charges", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "What to do when a customer disputes a brokerage charge", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Zerodha Partner products – referral programs and partner portal", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Brokerage & Charges"}, {"sheet": "Day 16", "title": "Day 16- Session Plan", "agenda": "Trainees will understand Zerodha's Coin platform for mutual fund investments – direct vs regular funds, ELSS, cutoff times, mandate, SIP, quarterly settlement and retention statement.", "topics": [{"type": "topic", "text": "Introduction to Mutual Funds – NAV, units, types of funds", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-funds"}, {"type": "topic", "text": "Direct vs Regular mutual funds – why Coin uses direct plans", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/direct-regular"}, {"type": "topic", "text": "ELSS funds – tax saving under Section 80C and 3-year lock-in", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/elss"}, {"type": "topic", "text": "How to buy and redeem mutual funds on Coin", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "MF cut-off times for same-day NAV applicability", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Multiple MF orders in Coin – which order takes priority?", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Coin mandate – what it is and how to set it up", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "SIP (Systematic Investment Plan) – setup and management on Coin", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/sip"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "SWP (Systematic Withdrawal Plan) – what it is and how to set up on Coin", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-funds"}, {"type": "topic", "text": "STP (Systematic Transfer Plan) – use case and how it works", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Common mutual fund customer queries on Coin", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Coin vs direct AMC website – pros and cons", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "NRI access to Coin – restrictions and allowances", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/nri-account-opening/process-nri/articles/how-to-open-an-account-as-a-nri"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Mutual Funds (Coin)"}, {"sheet": "Day 17", "title": "Day 17- Session Plan", "agenda": "Trainees will understand advanced Coin features – SWP, MF redemption timelines, mutual fund taxation (LTCG/STCG), lien and pledge of MF units, and handling complex MF customer queries.", "topics": [{"type": "topic", "text": "Recap of Coin basics – quick review Q&A", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "MF redemption – T+X credit timelines for equity, debt, overnight funds", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/redemption"}, {"type": "topic", "text": "MF taxation – equity funds LTCG/STCG, debt fund rules post 2023", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/mf-taxation"}, {"type": "topic", "text": "LTCG exemption on equity MF – ₹1 lakh limit and grandfathering", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "MF returns – XIRR vs absolute returns vs CAGR", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How to read a mutual fund factsheet", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Lien mark on MF units – how it works and when it is applied", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Pledge of MF units for margin at Zerodha", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common advanced MF customer queries and how to handle them", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "MF rematerialisation and demat vs statement of account (SOA)", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mock customer call – MF redemption not reflecting, cutoff confusion", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/redemption"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "FD & NPS", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "MF Redemption & Taxation"}, {"sheet": "Day 18", "title": "Day 18- Session Plan", "agenda": "Trainees will understand the SEBI peak margin framework, how margin penalties are calculated, how to read the daily margin statement, and how to handle customer queries on margin shortfall.", "topics": [{"type": "topic", "text": "What is margin shortfall? When and why does it occur?", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/margin-shortfall-instances"}, {"type": "topic", "text": "SEBI's peak margin reporting framework – 4 snapshots per day", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/peak-margin-on-hedged-positions"}, {"type": "topic", "text": "Margin penalty – how it is calculated and percentage rates", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Contract note & Daily margin statement – how to read and interpret", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Penalty on intraday peak margin shortfall vs EOD shortfall", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/margin-shortfall-instances"}, {"type": "topic", "text": "Impact of adding funds after square-off on penalty", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "How to avoid margin penalty – best practices", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Margin penalty ledger entries – how they appear in the ledger", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Peak margin vs snapshot margin – differences and common confusion", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "RMS square-off relationship with margin penalty", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Common margin penalty customer queries and resolutions", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Case studies – margin penalty scenarios with calculations", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Mock customer call – customer disputing margin penalty charge", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Wind up, Q&A and Recap", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Margin Penalties"}, {"sheet": "Day 19", "title": "Day 19- Session Plan", "agenda": "A structured revision session covering all major topics from Days 1–10 to reinforce understanding before the final assessment.", "topics": [{"type": "topic", "text": "Revision – Market structure, exchanges, SEBI, settlement cycle", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/general/articles/what-does-settlement-cycle-i-e-rolling-settlement-mean"}, {"type": "topic", "text": "Revision – DDPI/POA/EDIS, account opening types, bank accounts", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Revision – Product types (CNC, MIS, NRML), order types and execution", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-does-cnc-mis-and-nrml-mean"}, {"type": "topic", "text": "Revision – Market timings, auto-square off, ASM/GSM/ESM/IRP/PCAS", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/market-sessions/articles/what-are-the-market-timings"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Revision – F&O basics: margins, SPAN, MTM, rollover, ban period", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/what-does-rollover-mean-and-what-are-the-charges-involved"}, {"type": "topic", "text": "Revision – Physical settlement, hedged margins, freak trades, STT", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Revision – Corporate actions: dividends, buy average, bonus shares", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/portfolio/console-holdings/articles/how-to-update-buy-average"}, {"type": "topic", "text": "Q&A round on Weeks 1–2 topics", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Revision – Stock split, buybacks, mergers, OFS, IPO, rights issue", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Revision – Brokerage, charges, DP charges, AMC", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/what-do-dp-charges-mean"}, {"type": "topic", "text": "Revision – Coin, MF basics, SIP, SWP, QS, retention statement", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/profile/quarterly-settlement/articles/what-is-quarterly-settlement"}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Revision – Margin penalty, margin statement, peak margin", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "topic", "text": "Group Q&A – common misconceptions and edge cases", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Individual doubt-clearing session", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up and preview of assessment", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Revision Day"}, {"sheet": "Day 20", "title": "Day 20- Session Plan", "agenda": "A practical revision session focused on customer support scenarios, mock calls, ticket handling, and understanding Zerodha's internal SOPs and tools.", "topics": [{"type": "topic", "text": "Mock support ticket – identify the issue and draft a response", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Escalation matrix – when to escalate and to whom", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Common support ticket themes and how to categorize them", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Zerodha support tools overview – Console, Kite admin, TradingQ&A", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Mock customer call – F&O query (physical settlement / margin)", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/trading-faqs/f-otrading/articles/policy-on-physical-settlement"}, {"type": "topic", "text": "Mock customer call – Corporate action query (bonus, dividend)", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mock customer call – MF/Coin query (cutoff, mandate, redemption)", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Peer review of mock calls – feedback and improvement", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Reading Zerodha Varsity – how to use it as a support tool", "time": "20", "conductor": "Harish/Girish", "link": "https://zerodha.com/varsity/"}, {"type": "topic", "text": "Inside Zerodha resources – Zerodha's moat, anniversary posts", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Review of Zerodha SOPs – account opening, escalations, OS tickets", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Group exercise – draft response to 3 different ticket types", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Discussion: What makes a great support interaction at Zerodha?", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up and preparation for final assessment", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Support Tools & Tickets"}, {"sheet": "Test 2", "title": "TEST 2 – Zerodha Support Training Assessment", "agenda": "", "topics": [], "suggestions": [], "is_test": true, "summary": "Assessment: Day 10–20"}, {"sheet": "Day 21", "title": "Day 21- Session Plan", "agenda": "Final written and oral assessment covering all topics from the 21-day training. Trainees will demonstrate their knowledge of Zerodha products, market concepts, and customer support skills.", "topics": [{"type": "topic", "text": "Assessment briefing – structure, duration, evaluation criteria", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Section 1: MCQ – Market basics, order types, product types", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-does-cnc-mis-and-nrml-mean"}, {"type": "topic", "text": "Section 2: MCQ – F&O concepts, margins, corporate actions", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Section 3: MCQ – Charges, MF/Coin, margin penalty", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/margins/margin-reporting-and-margin-penalty/articles/what-is-margin-penalty-and-how-does-it-work"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Section 4: Short answer – explain a concept or calculate brokerage", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Section 5: Case study – resolve a customer escalation scenario", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Section 6: Practical – place and explain an order on Kite demo", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Break for assessment review and correction", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Oral round – individual Q&A with trainer (5 min per trainee)", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Oral round – continued", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Oral round – continued", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Assessment feedback – individual scores and areas for improvement", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Group discussion on common mistakes in assessment", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Final Q&A session", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Closing – congratulations and next steps", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Final Assessment Prep"}, {"sheet": "Day 22", "title": "Day 22- Session Plan", "agenda": "A hands-on Kite and Console session conducted by the platform team. Trainees will explore live platform features, advanced Kite tools, and understand the complete customer journey on Zerodha platforms.", "topics": [{"type": "topic", "text": "Kite session – platform walkthrough: watchlist, order book, positions", "time": "30", "conductor": "Harish/Girish", "link": "https://kite.zerodha.com/"}, {"type": "topic", "text": "Advanced Kite features – chart tools, indicators, Nudges", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Console overview – P&L, contract notes, ledger, holdings", "time": "30", "conductor": "Harish/Girish", "link": "https://console.zerodha.com/"}, {"type": "topic", "text": "Console – Tax P&L, reports and quarterly settlement", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/console/profile/quarterly-settlement/articles/what-is-quarterly-settlement"}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Hands-on: Place and manage a GTT order on Kite demo", "time": "30", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/charts-and-orders/gtt/articles/what-is-the-good-till-triggered-gtt-feature"}, {"type": "topic", "text": "Hands-on: Apply for an IPO and track status on Console", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Hands-on: Check margin using margin calculator and place F&O order", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Hands-on: Set up SIP and SWP on Coin", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/mutual-funds/understanding-mutual-fundsarticles/sip"}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Common platform-related queries – Kite mobile vs web", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Understanding Kite nudges and risk warnings", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Platform escalation SOPs – when to escalate platform issues", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Zerodha ecosystem overview – Kite, Console, Coin, Streak, Sensibull", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Open Q&A on all platform features", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Wind up, feedback and training completion", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Advanced Charts and terminal features on Kite – hands-on demo", "time": "30", "conductor": "Harish/Girish", "link": "https://kite.trade/"}, {"type": "topic", "text": "Kite alerts and nudges – setting up and managing", "time": "20", "conductor": "Harish/Girish", "link": "https://support.zerodha.com/category/trading-and-markets/alerts-and-nudges"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Kite & Console Walkthrough"}, {"sheet": "Day 23", "title": "Day 23- Session Plan", "agenda": "Post-assessment nesting phase – Day 1. Trainees begin handling live support tickets under supervision with guidance from senior agents.", "topics": [{"type": "topic", "text": "Introduction to nesting – what to expect", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Shadow a senior agent on live calls", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Shadow – continued", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Debrief and Q&A", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Handle support tickets with supervisor review", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Continued ticket handling", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Debrief and corrections", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Attend a team sync / standup meeting", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Review escalated tickets from morning", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Self-reflection and doubts log", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "End-of-day review with supervisor", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Share learning from the day", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Nesting – Shadow Calls"}, {"sheet": "Day 24", "title": "Day 24- Session Plan", "agenda": "Post-assessment nesting phase – Day 2. Trainees handle live tickets and calls with increased independence under light supervision.", "topics": [{"type": "topic", "text": "Morning briefing and ticket allocation", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Handle live tickets independently", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Continued ticket handling", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Mid-day review", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Handle live calls – under light supervision", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Continued calls", "time": "60", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Escalation practice", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Peer-to-peer knowledge sharing", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Discuss challenging tickets with trainer", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Learning log update", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "End-of-day supervisor feedback", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Individual action items for improvement", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Live Ticket Handling"}, {"sheet": "Final Test", "title": "FINAL TEST – Zerodha Support Training Comprehensive Assessment", "agenda": "", "topics": [], "suggestions": [], "is_test": true, "summary": "Comprehensive Final Test"}, {"sheet": "Day 25", "title": "Day 25- Session Plan", "agenda": "Training program completion day. Final feedback, performance review, certification, and transition to the live support queue.", "topics": [{"type": "topic", "text": "Training program recap – 25-day journey", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Trainer's feedback – individual and group", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Strengths and improvement areas", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Trainee self-assessment reflection", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "First Break (11:00 to 11:20 AM)"}, {"type": "topic", "text": "Certification ceremony and documentation", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Introduction to ongoing learning resources", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Zerodha support team norms and expectations", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Q&A with team leads", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Lunch Break (1:00 PM to 1:50 PM)"}, {"type": "topic", "text": "Transition plan – moving to live queue", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Support team buddy assignment", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Final group photo and celebration", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "break", "name": "Second Break (3:30 PM to 3:50 PM)"}, {"type": "topic", "text": "Open mic – trainees share key takeaways", "time": "30", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "Message from leadership", "time": "20", "conductor": "Harish/Girish", "link": ""}, {"type": "topic", "text": "NISM certification resources and ongoing compliance for support staff", "time": "15", "conductor": "Harish/Girish", "link": "https://www.nism.ac.in/"}, {"type": "break", "name": "End of the day (5:30 PM)"}, {"type": "break", "name": "Total Time: 6 hours (40 minutes for two breaks and 50 minutes for lunch)"}], "suggestions": [], "is_test": false, "summary": "Graduation & Feedback"}];
+const TR = {"trainers":["Gaurav Kumar","Raju Vernekar","Freeda Reshma Dsouza","Harish Bhat","Girish A"],"monthly_hours":{"December 2025":{"Gaurav Kumar":55,"Raju Vernekar":61,"Freeda Reshma Dsouza":0,"Harish Bhat":0,"Girish A":0},"January 2026":{"Gaurav Kumar":284,"Raju Vernekar":211,"Freeda Reshma Dsouza":0,"Harish Bhat":0,"Girish A":0},"February 2026":{"Gaurav Kumar":138,"Raju Vernekar":112,"Freeda Reshma Dsouza":0,"Harish Bhat":0,"Girish A":0},"March 2026":{"Gaurav Kumar":103.5,"Raju Vernekar":121,"Freeda Reshma Dsouza":19,"Harish Bhat":17,"Girish A":17},"April 2026":{"Gaurav Kumar":0,"Raju Vernekar":15,"Freeda Reshma Dsouza":71.5,"Harish Bhat":102.75,"Girish A":73.5}},"activities":[{"month":"December 2025","type":"Team Refresher","details":"ACOP (Online Team)","start":"10-Dec","end":"23-Dec","trainer":"Raju Vernekar","session":"Online","topic":"Kite mobile/web & order types","hours":16},{"month":"December 2025","type":"ACOP Team Refresher","details":"ACOP (Online Team)","start":"10-Dec","end":"19-Dec","trainer":"Gaurav Kumar","session":"Online","topic":"Kite mobile/web & order types","hours":16},{"month":"December 2025","type":"Project Maven","details":"MCP (Project Maven)","start":"8-Dec","end":"On going","trainer":"Raju Vernekar","session":"Offline","topic":"Project Maven for Support (MCP)","hours":52},{"month":"December 2025","type":"Project Maven","details":"MCP (Project Maven)","start":"8-Dec","end":"On going","trainer":"Gaurav Kumar","session":"Offline","topic":"Project Maven for Support (MCP)","hours":45},{"month":"December 2025","type":"Webinar","details":"Support Team","start":"19-Dec","end":"19-Dec","trainer":"Gaurav Kumar / Raju Vernekar","session":"Online","topic":"Delta Violation","hours":3},{"month":"December 2025","type":"Session","details":"Support Manager & AVPs","start":"11-Dec","end":"11-Dec","trainer":"Gaurav Kumar","session":"Online","topic":"Delta Violation","hours":3},{"month":"January 2026","type":"Refresher","details":"Sherin's Team","start":"13-Jan","end":"13-Jan","trainer":"Raju Vernekar","session":"Online","topic":"Basics of support","hours":4},{"month":"January 2026","type":"Project Maven","details":"MCP (Project Maven)","start":"1-Jan","end":"On going","trainer":"Raju Vernekar","session":"Offline","topic":"Project Maven","hours":156},{"month":"January 2026","type":"Assessments","details":"Communication Assessment Tool","start":"22-Jan","end":"22-Jan","trainer":"Raju Vernekar","session":"Online","topic":"Communication Assessment","hours":1},{"month":"January 2026","type":"Refresher","details":"Sherin's Team","start":"12-Jan","end":"20-Jan","trainer":"Gaurav Kumar","session":"Online","topic":"MTF, Hedge, Basket, Corp actions, MF","hours":15},{"month":"January 2026","type":"Project Maven","details":"MCP (Project Maven)","start":"1-Jan","end":"On going","trainer":"Gaurav Kumar","session":"Offline","topic":"Project Maven","hours":140},{"month":"January 2026","type":"Refresher for Entire Support","details":"Support Team","start":"28-Jan","end":"On going","trainer":"Gaurav Kumar","session":"Online","topic":"Tijori Integration with Kite & Console","hours":65},{"month":"January 2026","type":"Refresher for Evening Support","details":"MCX Team","start":"29-Jan","end":"On going","trainer":"Gaurav Kumar","session":"Online","topic":"Tijori and MCX Devolvement","hours":11},{"month":"January 2026","type":"Content Team Session","details":"Stock tips","start":"28-Jan","end":"28-Jan","trainer":"Gaurav Kumar","session":"Online","topic":"Session for Stock tips","hours":1.5},{"month":"January 2026","type":"Support Team OJT","details":"OJT for SM (Support)","start":"27-Dec","end":"31-Jan","trainer":"Gaurav Kumar / Raju Vernekar","session":"Online","topic":"Support On Job Training","hours":50},{"month":"January 2026","type":"Assessment","details":"Sherin's Team","start":"23-Jan","end":"23-Jan","trainer":"Gaurav Kumar","session":"Online","topic":"MTF, Hedge, Basket, Corp actions, MF","hours":1.5},{"month":"February 2026","type":"Project Maven","details":"Project Maven","start":"1-Feb","end":"On going","trainer":"Raju Vernekar","session":"Offline","topic":"Project Maven","hours":104},{"month":"February 2026","type":"Project Maven","details":"Project Maven","start":"1-Feb","end":"On going","trainer":"Gaurav Kumar","session":"Offline","topic":"Project Maven","hours":102},{"month":"February 2026","type":"Refresher for Entire Support","details":"Customer Support","start":"27-Jan","end":"On going","trainer":"Gaurav Kumar","session":"Online","topic":"Tijori, MCX Devolvement, SLB","hours":36},{"month":"February 2026","type":"Refresher for Support","details":"Customer Support","start":"11-Feb","end":"Completed","trainer":"Raju Vernekar","session":"Online","topic":"MCX Devolvement","hours":8},{"month":"March 2026","type":"Assessment","details":"Assessment - Communicate 360","start":"1-Mar","end":"On going","trainer":"Freeda Reshma Dsouza","session":"Offline","topic":"Assessment - Communicate 360","hours":6},{"month":"March 2026","type":"Assessment","details":"Assessment tool - LMS","start":"1-Mar","end":"12-Mar","trainer":"Raju Vernekar / Girish A / Harish Bhat","session":"Offline","topic":"Assessment tool - LMS","hours":2},{"month":"March 2026","type":"Support Training","details":"Tool building - C360","start":"12-Mar","end":"12-Mar","trainer":"Raju Vernekar / Girish A / Harish Bhat","session":"Offline","topic":"Tool building - C360","hours":5},{"month":"March 2026","type":"Support Training","details":"Batch 1 - C360 Training","start":"12-Mar","end":"On going","trainer":"Freeda Reshma Dsouza","session":"Offline","topic":"Batch 1 - C360 Training","hours":8},{"month":"March 2026","type":"Assessment","details":"Correction of Assessment - C360","start":"12-Mar","end":"On going","trainer":"Freeda Reshma Dsouza","session":"Offline","topic":"Correction of Assessment - C360","hours":5},{"month":"March 2026","type":"Support Training","details":"Report Generation - C360","start":"12-Mar","end":"12-Mar","trainer":"Raju Vernekar / Girish A / Harish Bhat","session":"Offline","topic":"Report Generation - C360","hours":10},{"month":"March 2026","type":"Project Maven","details":"Project Maven","start":"1-Mar","end":"On going","trainer":"Raju Vernekar","session":"Offline","topic":"Project Maven","hours":104},{"month":"March 2026","type":"Project Maven","details":"Project Maven","start":"1-Mar","end":"On going","trainer":"Gaurav Kumar","session":"Offline","topic":"Project Maven","hours":102},{"month":"March 2026","type":"Varsity Team Session","details":"Stock tips","start":"27-Mar","end":"27-Mar","trainer":"Gaurav Kumar","session":"Online","topic":"New hire training","hours":1.5},{"month":"April 2026","type":"Support Training","details":"Batch 2 - C360 Training","start":"7-Apr","end":"10-Apr","trainer":"Freeda Reshma Dsouza","session":"Offline","topic":"Assessment - Communicate 360","hours":20},{"month":"April 2026","type":"Support Training","details":"Batch 3 - C360 Training","start":"21-Apr","end":"24-Apr","trainer":"Freeda Reshma Dsouza","session":"Offline","topic":"Assessment - Communicate 360","hours":20},{"month":"April 2026","type":"Support Training","details":"Batch 2 - C360 (Girish)","start":"21-Apr","end":"24-Apr","trainer":"Girish A","session":"Offline","topic":"Assessment - Communicate 360","hours":9},{"month":"April 2026","type":"Support Training","details":"Batch - C360 (Harish)","start":"21-Apr","end":"24-Apr","trainer":"Harish Bhat","session":"Offline","topic":"Assessment - Communicate 360","hours":9},{"month":"April 2026","type":"Support Training","details":"Tool Building - C360 Modifications","start":"13-Apr","end":"30-Apr","trainer":"Raju Vernekar / Girish A / Harish Bhat","session":"Offline","topic":"Tool Building - C360 Modifications","hours":15},{"month":"April 2026","type":"Assessment","details":"Batch 1 - Correction C360","start":"11-Apr","end":"15-Apr","trainer":"Freeda Reshma Dsouza / Girish A / Harish Bhat","session":"Offline","topic":"Correction of Assessment - C360","hours":30},{"month":"April 2026","type":"Assessment","details":"Batch 2 - Correction C360","start":"27-Apr","end":"30-Apr","trainer":"Girish A / Harish Bhat","session":"Offline","topic":"Correction of Assessment - C360","hours":15},{"month":"April 2026","type":"Support Training","details":"Batch 1&2 Report Generation","start":"21-Apr","end":"21-Apr","trainer":"Harish Bhat","session":"Offline","topic":"Report Generation - C360","hours":8},{"month":"April 2026","type":"Accop Training","details":"Session on AML & Stock tips","start":"23-Apr","end":"23-Apr","trainer":"Girish A","session":"Online","topic":"AML & Stock tips","hours":1.75},{"month":"April 2026","type":"NRI Team Training","details":"Session on AML & Stock tips","start":"27-Apr","end":"27-Apr","trainer":"Harish Bhat","session":"Online","topic":"AML & Stock tips","hours":1.75},{"month":"April 2026","type":"Fresh Hires Training","details":"Session on AML & Stock tips","start":"29-Apr","end":"29-Apr","trainer":"Girish A","session":"Online","topic":"AML & Stock tips","hours":0.75},{"month":"April 2026","type":"Training Need Analysis","details":"Understanding requirements from CS","start":"16-Apr","end":"16-Apr","trainer":"Freeda Reshma Dsouza","session":"Online","topic":"Training Need Analysis","hours":1},{"month":"April 2026","type":"Self Assessment Form","details":"Building self assessment for CS","start":"17-Apr","end":"17-Apr","trainer":"Freeda Reshma Dsouza","session":"Online","topic":"Self Assessment","hours":0.5},{"month":"April 2026","type":"Varsity Scripts Writing","details":"Script preparation","start":"-","end":"-","trainer":"Harish Bhat","session":"Offline","topic":"Varsity Scripts","hours":2},{"month":"April 2026","type":"Varsity Video Shoot","details":"Video recording","start":"-","end":"-","trainer":"Harish Bhat","session":"Offline","topic":"Varsity Videos","hours":2},{"month":"April 2026","type":"Varsity Backend Support","details":"Tickets, exam schedule","start":"-","end":"-","trainer":"Harish Bhat","session":"Offline","topic":"Varsity Backend","hours":15},{"month":"April 2026","type":"Mock Calls","details":"Mock calls for SM","start":"30-Apr","end":"30-Apr","trainer":"Harish Bhat","session":"Offline","topic":"Mock calls","hours":2},{"month":"April 2026","type":"Mock Calls","details":"Mock calls for SM","start":"30-Apr","end":"30-Apr","trainer":"Girish A","session":"Offline","topic":"Mock calls","hours":2},{"month":"April 2026","type":"Ticket Tool Video","details":"Video production","start":"2-May","end":"2-May","trainer":"Harish Bhat","session":"Online","topic":"Ticket Tool","hours":3}],"kra":[{"area":"New Hire Training","weight":25,"criteria":"90% yield, 10% attrition; Min feedback score 70%; Schedule Adherence 95%; Certification FPY 85%; Dip check >75%"},{"area":"OJT / 0-30-60 Days Performance","weight":20,"criteria":"Implementation, Improvement, Quality threshold 80%; Certification FPY 85%"},{"area":"Refresher / Up-trainings","weight":25,"criteria":"Frequency, Coverage, Schedule Adherence, Efficiency (80% upward trend)"},{"area":"Process Improvement","weight":20,"criteria":"Call monitoring, PKTs, Call calibration, Module revision, Process improvement"}]};
+const TRAINERS = TR.trainers;
+const COLORS_T = {'Gaurav Kumar':'#3b82f6','Raju Vernekar':'#00e5c3','Freeda Reshma Dsouza':'#f59e0b','Harish Bhat':'#ef4444','Girish A':'#a855f7'};
+const MONTHS_ORDER = ['December 2025','January 2026','February 2026','March 2026','April 2026','May 2026','June 2026','July 2026','August 2026','September 2026','October 2026','November 2026','December 2026'];
+const KRA_COLORS = ['#00e5c3','#ff6b35','#7c6af7','#f59e0b','#ef4444'];
+const ROLE_CFG_BASE = {
+  admin:  {pw:'admin123',  tabs:['dash','prog','plan','ni','cal'], color:'#f59e0b', label:'Freeda (Admin)', trainer:'Freeda Reshma Dsouza'},
+  girish: {pw:'girish123', tabs:['dash','prog','plan','cal'],      color:'#a855f7', label:'Girish',          trainer:'Girish A'},
+  harish: {pw:'harish123', tabs:['dash','prog','plan','cal'],      color:'#ef4444', label:'Harish',          trainer:'Harish Bhat'},
+  guest:  {pw:'',          tabs:['plan','ni'],                     color:'#ff6b35', label:'Guest',           trainer:''}
+};
+// Merge with stored passwords
+function getRoleCfg(roleId) {
+  const base = JSON.parse(JSON.stringify(ROLE_CFG_BASE[roleId]||{}));
+  const saved = localStorage.getItem('zh_pw_'+roleId);
+  if(saved) base.pw = saved;
+  return base;
+}
+const ROLE_CFG = ROLE_CFG_BASE; // kept for compatibility
+let CUR_ROLE = 'admin';
+let CUR_TRAINER_NAME = '';
+
+// ====== STORAGE ======
+function getLogs() { try { return JSON.parse(localStorage.getItem('zh_logs')||'[]'); } catch(e){return[];} }
+function saveLogs(arr) { localStorage.setItem('zh_logs', JSON.stringify(arr)); }
+function getEdits() { try { return JSON.parse(localStorage.getItem('zh_edits')||'[]'); } catch(e){return[];} }
+function saveEdits(arr) { localStorage.setItem('zh_edits', JSON.stringify(arr)); }
+
+// Merge base SP with saved edits
+function getSP() {
+  const edits = getEdits();
+  if (!edits.length) return SP_BASE.map(d => ({...d, topics: d.topics.map(t=>({...t}))}));
+  return SP_BASE.map(d => {
+    const topics = d.topics.map((t,i) => {
+      const ed = edits.find(e => e.sheet===d.sheet && e.idx===i);
+      return ed ? {...t, text:ed.text, time:ed.time, link:ed.link} : {...t};
+    });
+    return {...d, topics};
+  });
+}
+
+// All activities = base + logged
+function getAllActs() {
+  return [...TR.activities, ...getLogs()];
+}
+function getAllMonthlyHours() {
+  const base = JSON.parse(JSON.stringify(TR.monthly_hours));
+  getLogs().forEach(lg => {
+    if(!base[lg.month]) base[lg.month] = {};
+    TRAINERS.forEach(t => { if(!base[lg.month][t]) base[lg.month][t]=0; });
+    if(lg.trainer && base[lg.month]) base[lg.month][lg.trainer] = (base[lg.month][lg.trainer]||0)+lg.hours;
+  });
+  return base;
+}
+
+// ====== LOGIN ======
+let selRoleId = 'admin';
+function selRole(r,el) {
+  selRoleId=r;
+  document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('lerr').textContent='';
+  document.getElementById('pwIn').value='';
+  // Show/hide trainer sub-row
+  const subRow=document.getElementById('trainerSubRow');
+  if(r==='trainer') {
+    subRow.style.display='flex';
+    selRoleId='trainer_pending'; // pending until sub-trainer selected
+    document.getElementById('pwWrap').style.opacity='0.4';
+    document.querySelectorAll('.tsub-btn').forEach(b=>b.classList.remove('sel'));
+    return;
+  } else {
+    subRow.style.display='none';
+  }
+  const isG=r==='guest';
+  document.getElementById('pwWrap').style.opacity=isG?'0.4':'1';
+  document.getElementById('ghint').style.display=isG?'block':'none';
+  if(!isG) document.getElementById('pwIn').focus();
+}
+function selSubTrainer(role,btn) {
+  selRoleId=role;
+  document.querySelectorAll('.tsub-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('ghint').style.display='none';
+  document.getElementById('pwWrap').style.opacity='1';
+  document.getElementById('lerr').textContent='';
+  document.getElementById('pwIn').focus();
+}
+function togglePw(){const i=document.getElementById('pwIn');i.type=i.type==='password'?'text':'password';}
+// ====== PASSWORD RESET ======
+function openResetPw() {
+  document.getElementById('rpwOverlay').style.display='flex';
+  document.getElementById('rpwCur').value='';
+  document.getElementById('rpwNew').value='';
+  document.getElementById('rpwConf').value='';
+  document.getElementById('rpwMsg').textContent='';
+  document.getElementById('rpwCur').focus();
+}
+function closeResetPw() { document.getElementById('rpwOverlay').style.display='none'; }
+function saveResetPw() {
+  const cfg=getRoleCfg(CUR_ROLE);
+  const cur=document.getElementById('rpwCur').value;
+  const nw=document.getElementById('rpwNew').value;
+  const cf=document.getElementById('rpwConf').value;
+  const msg=document.getElementById('rpwMsg');
+  if(cur!==cfg.pw){msg.style.color='var(--red)';msg.textContent='Current password is incorrect.';return;}
+  if(nw.length<6){msg.style.color='var(--red)';msg.textContent='New password must be at least 6 characters.';return;}
+  if(nw!==cf){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
+  localStorage.setItem('zh_pw_'+CUR_ROLE,nw);
+  msg.style.color='var(--ac)';msg.textContent='✅ Password updated successfully!';
+  setTimeout(closeResetPw,1200);
+}
+function doLogin() {
+  const cfg=getRoleCfg(selRoleId);
+  const entered=document.getElementById('pwIn').value;
+  if(selRoleId==='trainer_pending'){document.getElementById('lerr').textContent='Please select Girish or Harish first.';return;}
+  if(selRoleId!=='guest'&&entered!==cfg.pw){
+    document.getElementById('lerr').textContent='Incorrect password. Try again.';
+    document.getElementById('pwIn').select();
+    document.querySelector('.lf').style.animation='none';
+    document.querySelector('.lf').offsetHeight;
+    document.querySelector('.lf').style.animation='shake .3s ease';
+    return;
+  }
+  CUR_ROLE=selRoleId;
+  CUR_TRAINER_NAME = cfg.trainer || '';
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appShell').style.display='block';
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.style.display=cfg.tabs.includes(b.dataset.tab)?'':' none';
+  });
+  const first=document.querySelector(`.tab[data-tab="${cfg.tabs[0]}"]`);
+  swTab(cfg.tabs[0],first);
+  document.getElementById('nud').style.background=cfg.color;
+  document.getElementById('nul').textContent=cfg.label;
+  // Show/hide log form
+  const isTrainerRole = (selRoleId==='girish'||selRoleId==='harish'||selRoleId==='admin'||selRoleId==='trainer');
+  const lfw=document.getElementById('logFormWrap');
+  if(lfw) lfw.style.display=isTrainerRole?'block':'none';
+  // Lock trainer dropdown to logged-in trainer
+  const logTSel = document.getElementById('logTrainer');
+  if(logTSel && CUR_TRAINER_NAME) {
+    for(let i=0;i<logTSel.options.length;i++){
+      if(logTSel.options[i].value===CUR_TRAINER_NAME||logTSel.options[i].text===CUR_TRAINER_NAME){
+        logTSel.selectedIndex=i; break;
+      }
+    }
+    logTSel.disabled = (selRoleId!=='admin');
+  }
+  // Show download buttons for admin/trainer
+  const dlBtn=document.getElementById('dlDashBtn');
+  const dlRow=document.getElementById('progDlRow');
+  if(dlBtn) dlBtn.style.display=isTrainerRole?'':'none';
+  if(dlRow) dlRow.style.display=isTrainerRole?'flex':'none';
+  // Show reset-pw link for admin & trainers
+  const cpLink=document.getElementById('changePwLink');
+  if(cpLink) cpLink.style.display=(selRoleId==='admin'||selRoleId==='girish'||selRoleId==='harish')?'':'none';
+  // Edit note
+  if(selRoleId==='girish'||selRoleId==='harish') {
+    document.getElementById('canEditNote').textContent='✏ You can edit topics, times and links';
+  } else if(selRoleId==='admin') {
+    document.getElementById('canEditNote').textContent='✏ Admin mode — full editing enabled';
+  } else {
+    document.getElementById('canEditNote').textContent='';
+  }
+  if(cfg.tabs.includes('dash')) buildDash();
+  if(cfg.tabs.includes('prog')) buildProgress();
+  buildPlanner();
+}
+function doLogout() {
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('pwIn').value='';
+  document.getElementById('lerr').textContent='';
+  selRole('admin',document.querySelector('.rc[data-role=admin]'));
+}
+const _ss=document.createElement('style');
+_ss.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';
+document.head.appendChild(_ss);
+
+// ====== TAB SWITCH ======
+function swTab(name,btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='cal') initCal();
+}
+
+// ====== DASHBOARD ======
+function buildDash() {
+  const acts = getAllActs();
+  const mhrs = getAllMonthlyHours();
+  const allMonths = Object.keys(mhrs).filter(m => Object.values(mhrs[m]).some(v=>v>0));
+  const totalHrs = acts.reduce((s,a)=>s+a.hours,0);
+  const onHrs = acts.filter(a=>a.session==='Online').reduce((s,a)=>s+a.hours,0);
+  const offHrs = acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+a.hours,0);
+  document.getElementById('dashYearLabel').textContent = allMonths.length ? allMonths[0].split(' ')[1]+' – '+(allMonths[allMonths.length-1]) : '';
+  document.getElementById('kpiRow').innerHTML=[
+    ['Total Activities',acts.length,'Logged sessions','#00e5c3'],
+    ['Total Man Hours',totalHrs.toFixed(1),'All trainers combined','#ff6b35'],
+    ['Online Hours',onHrs.toFixed(1),'Virtual sessions','#7c6af7'],
+    ['Offline Hours',offHrs.toFixed(1),'In-person sessions','#f59e0b'],
+    ['Active Months',allMonths.length,'With logged data','#22c55e']
+  ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
+
+  // Monthly stacked bar
+  const maxMT = Math.max(...MONTHS_ORDER.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
+  let mHtml = MONTHS_ORDER.filter(m=>mhrs[m]).map(m=>{
+    const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
+    if(!total) return '';
+    const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
+    const lbl=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');
+    return `<div class="br"><div class="bl">${lbl}</div><div class="bt" style="height:20px;display:flex;gap:2px">${segs}</div><div class="bv">${total.toFixed(0)}h</div></div>`;
+  }).join('');
+  const leg=Object.entries(COLORS_T).map(([t,c])=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx2)"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
+  document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">${leg}</div>`;
+
+  // Trainer totals
+  const tTotals={};TRAINERS.forEach(t=>{tTotals[t]=acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+a.hours,0);});
+  const maxT=Math.max(...Object.values(tTotals),1);
+  document.getElementById('tChart').innerHTML=Object.entries(tTotals).sort((a,b)=>b[1]-a[1]).map(([t,h])=>`<div class="br"><div class="bl">${t.split(' ')[0]}</div><div class="bt"><div class="bf" style="width:${(h/maxT*100).toFixed(1)}%;background:${COLORS_T[t]||'#888'}"></div></div><div class="bv">${h.toFixed(0)}h</div></div>`).join('');
+  // Session type
+  const maxST=Math.max(onHrs,offHrs,1);
+  document.getElementById('stChart').innerHTML=[['Online',onHrs,'#38bdf8'],['Offline',offHrs,'#86efac']].map(([l,h,c])=>`<div class="br"><div class="bl">${l}</div><div class="bt"><div class="bf" style="width:${(h/maxST*100).toFixed(1)}%;background:${c}"></div></div><div class="bv">${h.toFixed(1)}h</div></div>`).join('');
+  // Activity types
+  const aTypes={};acts.forEach(a=>{aTypes[a.type]=(aTypes[a.type]||0)+a.hours;});
+  const top=Object.entries(aTypes).sort((a,b)=>b[1]-a[1]).slice(0,8);const maxA=top[0]?.[1]||1;const acs=['#00e5c3','#ff6b35','#7c6af7','#f59e0b','#3b82f6','#22c55e','#ef4444','#a855f7'];
+  document.getElementById('atChart').innerHTML=top.map(([t,h],i)=>`<div class="br"><div class="bl" style="font-size:11px">${t}</div><div class="bt"><div class="bf" style="width:${(h/maxA*100).toFixed(1)}%;background:${acs[i%acs.length]}"></div></div><div class="bv">${h.toFixed(1)}h</div></div>`).join('');
+  // Filters
+  const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
+  if(fm.options.length===1) {
+    MONTHS_ORDER.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
+    TRAINERS.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
+    [...new Set(acts.map(a=>a.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
+  }
+  renderTable();
+}
+function renderTable() {
+  const fm=document.getElementById('fmth').value,ft=document.getElementById('ftrn').value,fty=document.getElementById('ftyp').value;
+  let rows=getAllActs();
+  if(fm!=='all') rows=rows.filter(r=>r.month===fm);
+  if(ft!=='all') rows=rows.filter(r=>r.trainer&&r.trainer.includes(ft));
+  if(fty!=='all') rows=rows.filter(r=>r.type===fty);
+  const minHrsEl=document.getElementById('fMinHrs');
+  const minHrs=minHrsEl?parseFloat(minHrsEl.value)||0:0;
+  if(minHrs>0) rows=rows.filter(r=>(r.hours||0)>=minHrs);
+  // Trainer role: only show own activities
+  if(CUR_ROLE!=='admin'&&CUR_TRAINER_NAME) rows=rows.filter(r=>r.trainer&&r.trainer.includes(CUR_TRAINER_NAME));
+  const ms=m=>m?m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26'):'—';
+  document.getElementById('tbdy').innerHTML=rows.map(r=>`<tr><td style="font-size:11px;color:var(--tx2)">${ms(r.month)}</td><td><span class="badge bty">${esc(r.type)}</span></td><td>${esc(r.details||r.training_details||'—')}</td><td style="font-size:12px">${esc(r.trainer||'—')}</td><td><span class="badge ${r.session==='Online'?'bon':'bof'}">${r.session||'—'}</span></td><td style="font-size:12px;color:var(--tx2)">${esc(r.topic||'—')}</td><td><span class="hp">${r.hours}h</span></td></tr>`).join('');
+}
+
+// ====== LOG ACTIVITY ======
+function logActivity() {
+  const trainer=document.getElementById('logTrainer').value;
+  const month=document.getElementById('logMonth').value;
+  const type=document.getElementById('logType').value;
+  const session=document.getElementById('logSession').value;
+  const details=document.getElementById('logDetails').value.trim();
+  const topic=document.getElementById('logTopic').value.trim();
+  const hoursRaw=parseFloat(document.getElementById('logHours').value);
+  const date=document.getElementById('logDate').value;
+  const err=document.getElementById('logErr');const ok=document.getElementById('logOk');
+  err.textContent='';ok.textContent='';
+  if(!details){err.textContent='Enter activity details.';return;}
+  if(!topic){err.textContent='Enter topic covered.';return;}
+  if(isNaN(hoursRaw)||hoursRaw<=0){err.textContent='Enter valid hours (> 0).';return;}
+  const entry={month,type,details,trainer,session,topic,hours:hoursRaw,start:date||'—',end:'—'};
+  const logs=getLogs();logs.push(entry);saveLogs(logs);
+  ok.textContent=`✓ ${hoursRaw}h logged for ${trainer.split(' ')[0]}`;
+  setTimeout(()=>ok.textContent='',3000);
+  document.getElementById('logDetails').value='';document.getElementById('logTopic').value='';document.getElementById('logHours').value='';
+  buildDash();buildProgress();
+}
+
+// ====== TRAINER PROGRESS ======
+// Map activity types → KRA areas
+const KRA_TYPE_MAP = {
+  'Support Training':'New Hire Training','OJT':'OJT / 0-30-60 Days Performance',
+  'Refresher':'Refresher / Up-trainings','Team Refresher':'Refresher / Up-trainings',
+  'ACOP Team Refresher':'Refresher / Up-trainings','Webinar':'Refresher / Up-trainings',
+  'NRI Team Training':'Refresher / Up-trainings','Fresh Hires Training':'New Hire Training',
+  'Assessment':'OJT / 0-30-60 Days Performance','Mock Calls':'Process Improvement',
+  'Accop Training':'Refresher / Up-trainings','Project Maven':'Process Improvement',
+  'Varsity':'Process Improvement','Varsity Scripts Writing':'Process Improvement',
+  'Varsity Video Shoot':'Process Improvement','Varsity Backend Support':'Process Improvement',
+  'Ticket Tool Video':'Process Improvement','Training Need Analysis':'Process Improvement',
+  'Self Assessment Form':'Process Improvement','Content Team Session':'Refresher / Up-trainings',
+  'Support Team OJT':'OJT / 0-30-60 Days Performance'
+};
+const KRA_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
+const KRA_WEIGHTS = {...Object.fromEntries(TR.kra.map(k=>[k.area,k.weight])), 'Behavior & Capabilities':10};
+const KRA_CLR = {'New Hire Training':KRA_COLORS[0],'OJT / 0-30-60 Days Performance':KRA_COLORS[1],'Refresher / Up-trainings':KRA_COLORS[2],'Process Improvement':KRA_COLORS[3],'Behavior & Capabilities':'#ff6b35'};
+
+function buildProgress() {
+  const acts=getAllActs();const mhrs=getAllMonthlyHours();
+  const isAdmin=(CUR_ROLE==='admin');
+  const viewTrainers=isAdmin?TRAINERS:[CUR_TRAINER_NAME].filter(Boolean);
+
+  const tTotals={};TRAINERS.forEach(t=>{tTotals[t]=acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+a.hours,0);});
+  const maxT=Math.max(...Object.values(tTotals),1);
+  const init=t=>t.split(' ').map(p=>p[0]).join('').substring(0,2);
+  const activeMonths=MONTHS_ORDER.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
+
+  // Trainer cards — only show viewTrainers
+  document.getElementById('trCards').innerHTML=viewTrainers.map(t=>{
+    const c=COLORS_T[t]||'#888';const total=tTotals[t]||0;
+    const mBars=activeMonths.map(m=>{
+      const h=(mhrs[m]||{})[t]||0;const maxM=Math.max(...viewTrainers.map(x=>(mhrs[m]||{})[x]||0),1);
+      const lbl=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':m.split(' ')[1].slice(-2));
+      return `<div class="tmr"><div class="tm">${lbl}</div><div class="tt"><div class="tf" style="width:${(h/maxM*100).toFixed(1)}%;background:${c}"></div></div><div class="tv">${h}h</div></div>`;
+    }).join('');
+    return `<div class="tc"><div class="tch"><div class="tav" style="background:${c}">${init(t)}</div><div><div class="tn">${t}</div><div class="tr2">Trainer</div></div><div style="margin-left:auto;text-align:right"><div class="tth">${total.toFixed(0)}</div><div style="font-size:10px;color:var(--tx2)">total hrs</div></div></div><div class="tcb">${mBars}</div></div>`;
+  }).join('');
+
+  // KRA Framework section — admin only
+  const kraFW=document.getElementById('kraFrameworkSection');
+  const trCmpCard=document.getElementById('trainerCompCard');
+  if(kraFW) kraFW.style.display=isAdmin?'':'none';
+  if(trCmpCard) trCmpCard.style.display=isAdmin?'':'none';
+
+  if(isAdmin) {
+    document.getElementById('kraCards').innerHTML=[...TR.kra.map((k,i)=>`<div class="kca"><div class="kw" style="color:${KRA_COLORS[i]}">${k.weight}%</div><div class="ka">${k.area}</div><div class="kc2">${k.criteria}</div><div class="kbt"><div class="kbf" style="width:${k.weight}%;background:${KRA_COLORS[i]}"></div></div><div class="ksc">Weight: ${k.weight}% of competency score</div></div>`),
+      `<div class="kca" style="border-color:rgba(255,107,53,.3)"><div class="kw" style="color:#ff6b35">10%</div><div class="ka">Behavior & Capabilities</div><div class="kc2">Attendance (3%), Customer Focus (3%), Communication & Influence (2%), Resilience (2%)</div><div class="kbt"><div class="kbf" style="width:10%;background:#ff6b35"></div></div><div class="ksc">Weight: 10% of total score</div></div>`
+    ].join('');
+    document.getElementById('tcmpChart').innerHTML=TRAINERS.slice().sort((a,b)=>(tTotals[b]||0)-(tTotals[a]||0)).map(t=>`<div class="br"><div class="bl">${t.split(' ')[0]}</div><div class="bt"><div class="bf" style="width:${((tTotals[t]||0)/maxT*100).toFixed(1)}%;background:${COLORS_T[t]||'#888'}"></div></div><div class="bv">${(tTotals[t]||0).toFixed(0)}h</div></div>`).join('');
+    // Admin: KRA Score Editor
+    renderKRAEditor();
+  }
+
+  // Personal KRA % for trainer view
+  const pkWrap=document.getElementById('personalKRAWrap');
+  if(pkWrap) {
+    if(!isAdmin && CUR_TRAINER_NAME) {
+      pkWrap.style.display='';
+      const myActs=acts.filter(a=>a.trainer&&a.trainer.includes(CUR_TRAINER_NAME));
+      const myTotal=myActs.reduce((s,a)=>s+a.hours,0)||1;
+      const byKRA={};
+      KRA_ALL.forEach(k=>{byKRA[k]=0;});
+      myActs.forEach(a=>{
+        const k=KRA_TYPE_MAP[a.type]||'Process Improvement';
+        byKRA[k]=(byKRA[k]||0)+a.hours;
+      });
+      const c=COLORS_T[CUR_TRAINER_NAME]||'var(--ac)';
+      const adminScores=(getKRAScores()[CUR_TRAINER_NAME]||null);// check if admin set scores per trainer
+      const adminScoresFlat={};
+      // adminScores is stored as {area:{trainer:score}} so flatten for this trainer
+      const allKRAScores=getKRAScores();
+      KRA_ALL.forEach(k=>{adminScoresFlat[k]=(allKRAScores[k]||{})[CUR_TRAINER_NAME]||null;});
+      const hasAdminScores=KRA_ALL.some(k=>adminScoresFlat[k]!==null&&adminScoresFlat[k]!==0);
+      pkWrap.innerHTML=`<div class="pkra-card"><div class="pkra-title">📊 My KRA Progress — ${CUR_TRAINER_NAME}${hasAdminScores?' <span style="font-size:10px;color:var(--tx3)">(Admin-set scores)</span>':''}</div>${
+        KRA_ALL.map(k=>{
+          const wt=KRA_WEIGHTS[k]||0;const clr=KRA_CLR[k]||c;
+          const pct=hasAdminScores?(adminScoresFlat[k]||0):Math.min(100,(((byKRA[k]||0)/myTotal)*100)).toFixed(0);
+          return `<div class="pkra-row"><div class="pkra-lbl">${k} <span style="color:var(--tx3)">(${wt}%)</span></div><div class="pkra-bar"><div class="pkra-fill" style="width:${pct}%;background:${clr}"></div></div><div class="pkra-pct" style="color:${clr}">${pct}%</div></div>`;
+        }).join('')
+      }<div style="font-size:11px;color:var(--tx3);margin-top:8px">${hasAdminScores?'Scores set by admin':'% of your total '+myTotal.toFixed(1)+' hours spent in each KRA area'}</div></div>`;
+    } else {
+      pkWrap.style.display='none';
+    }
+  }
+}
+
+// ====== SESSION PLANNER ======
+const PHASES=[
+  {lbl:'Orientation',col:'#00e5c3',sheets:['Day 0']},
+  {lbl:'Phase 1 · Fundamentals (Days 1–4)',col:'#3b82f6',sheets:['Day 1','Day 2','Day 3','Day 4']},
+  {lbl:'Phase 2 · Trading & F&O (Days 5–9)',col:'#7c6af7',sheets:['Day 5','Day 6','Day 7','Day 8','Day 9','Test 1']},
+  {lbl:'Phase 3 · Corporate Actions (Days 10–14)',col:'#22c55e',sheets:['Day 10','Day 11','Day 12','Day 13','Day 14']},
+  {lbl:'Phase 4 · Products & Revision (Days 15–20)',col:'#ff6b35',sheets:['Day 15','Day 16','Day 17','Day 18','Day 19','Day 20','Test 2']},
+  {lbl:'Phase 5 · Live Practice (Days 21–24)',col:'#a855f7',sheets:['Day 21','Day 22','Day 23','Day 24']},
+  {lbl:'Assessment & Graduation',col:'#f59e0b',sheets:['Final Test','Day 25']}
+];
+function tileClass(s,isT){
+  if(s==='Day 25') return 'cg';if(s==='Final Test') return 'cf';if(isT) return 'ct2';if(s==='Day 0') return 'c0';
+  const n=parseInt(s.replace('Day ',''));
+  return n<=4?'c1':n<=9?'c2':n<=14?'c3':n<=20?'c4':'c5';
+}
+const legendDots=[{c:'#0d3b3b',l:'Orientation'},{c:'#0d2b5e',l:'Phase 1'},{c:'#2d0a5e',l:'Phase 2'},{c:'#0a3d1a',l:'Phase 3'},{c:'#4a1a0a',l:'Phase 4'},{c:'#1a0a4a',l:'Phase 5'},{c:'#3d0a1a',l:'Assessment'},{c:'#1a2a00',l:'Final Test'},{c:'#0a2a3d',l:'Graduation'}];
+
+function buildPlanner() {
+  const SP=getSP();
+  document.getElementById('legend').innerHTML=legendDots.map(d=>`<span style="display:flex;align-items:center;gap:5px;color:var(--tx2)"><span style="width:10px;height:10px;border-radius:2px;background:${d.c};display:inline-block"></span>${d.l}</span>`).join('');
+  const cont=document.getElementById('planTiles');cont.innerHTML='';
+  PHASES.forEach(ph=>{
+    const sec=document.createElement('div');sec.className='phase-sec';
+    sec.innerHTML=`<div class="ph"><span class="pl" style="color:${ph.col};background:${ph.col}22">${ph.lbl}</span></div>`;
+    const grid=document.createElement('div');grid.className='tgr';
+    ph.sheets.forEach(sn=>{
+      const d=SP.find(x=>x.sheet===sn);if(!d) return;
+      const tc=tileClass(d.sheet,d.is_test);
+      const wide=d.is_test||d.sheet==='Final Test'||d.sheet==='Day 25';
+      const cnt=d.topics.filter(t=>t.type==='topic').length;
+      const lbl=d.sheet==='Day 25'?'Graduation':d.sheet==='Final Test'?'Final Test':d.is_test?'Assessment':d.sheet;
+      const tile=document.createElement('div');tile.className=`tile ${tc} ${wide?'tw2':''}`;
+      tile.onclick=()=>openModal(d,ph.col);
+      tile.innerHTML=`<div class="ti"><div><div class="tlb">${lbl}</div><div class="ttt">${d.summary||d.title}</div></div><div class="tc2">${cnt?'📋 '+cnt+' topics':'📝 Assessment'}</div><div class="tdn">${d.sheet.replace('Day ','')}</div></div>`;
+      grid.appendChild(tile);
+    });
+    sec.appendChild(grid);cont.appendChild(sec);
+  });
+}
+
+// ====== MODAL ======
+let _curDay=null,_curPhaseCol='#00e5c3';
+function openModal(d,col) {
+  _curDay=d;_curPhaseCol=col||'#00e5c3';
+  document.getElementById('mab').style.background=col;
+  const tagMap={'Final Test':'Final Assessment','Day 25':'Graduation'};
+  const tEl=document.getElementById('mtag');
+  tEl.textContent=tagMap[d.sheet]||(d.is_test?'Assessment':d.sheet);
+  tEl.style.cssText=`background:${col}22;color:${col}`;
+  document.getElementById('mtit').textContent=d.title;
+  renderModalBody(d);
+  document.getElementById('mo').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function renderModalBody(d) {
+  const canEdit=(CUR_ROLE==='admin'||CUR_ROLE==='trainer');
+  let html='';
+  if(d.agenda) html+=`<div class="agb"><div class="agl">Day Objective</div>${esc(d.agenda)}</div>`;
+  if(d.is_test&&d.test_info) html+=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:16px"><div style="font-size:13px;font-weight:600;margin-bottom:7px">📝 Assessment Details</div>${d.test_info.topics_covered?`<p style="font-size:12px;color:var(--tx2)"><b>Scope:</b> ${esc(d.test_info.topics_covered)}</p>`:''}${d.test_info.details?`<p style="font-size:12px;color:var(--tx2);margin-top:4px"><b>Format:</b> ${esc(d.test_info.details)}</p>`:''}</div>`;
+  if(d.topics&&d.topics.length) {
+    html+=`<div class="sct">Session Schedule ${canEdit?'<span style="font-size:10px;color:var(--ac3)">(click ✏ to edit any row)</span>':''}</div>`;
+    html+=`<table class="stbl"><thead><tr><th style="width:46%">Topic</th><th style="width:80px">Time</th><th style="width:130px">Trainer</th><th style="width:90px">Resource</th>${canEdit?'<th style="width:50px"></th>':''}</tr></thead><tbody>`;
+    d.topics.forEach((t,i)=>{
+      if(t.type==='break'){
+        html+=`<tr class="brk"><td colspan="${canEdit?5:4}">☕ ${esc(t.name)}</td></tr>`;
+      } else {
+        const tBadge=t.time?`<span class="tb2">${t.time} min</span>`:'-';
+        const linkHtml=t.link?`<a class="lb2" href="${esc(t.link)}" target="_blank">🔗 Open</a>`:canEdit?'<span style="font-size:11px;color:var(--tx3)">—</span>':'—';
+        const edMark=getEdits().some(e=>e.sheet===d.sheet&&e.idx===i)?'<span class="edited-mark">✏edited</span>':''
+        const editBtn=canEdit?`<td><button class="edit-btn" onclick="startEdit(${i})">✏</button></td>`:'';
+        html+=`<tr id="row-${i}"><td>${esc(t.text)}${edMark}</td><td>${tBadge}</td><td style="font-size:11px;color:var(--tx3)">${esc(t.conductor||'Harish/Girish')}</td><td>${linkHtml}</td>${editBtn}</tr>`;
+      }
+    });
+    html+='</tbody></table>';
+  }
+  const sugs=(d.suggestions||[]).filter(s=>s.length>8&&!s.startsWith('Things to add'));
+  if(sugs.length) html+=`<div class="sct" style="margin-top:22px">Activities & Notes</div><div class="sw">${sugs.map(s=>`<span class="st2">💡 ${esc(s)}</span>`).join('')}</div>`;
+  document.getElementById('mbdy').innerHTML=html;
+}
+function startEdit(idx) {
+  const d=getSP().find(x=>x.sheet===_curDay.sheet);
+  const t=d.topics[idx];
+  const row=document.getElementById('row-'+idx);
+  row.classList.add('edit-row');
+  row.innerHTML=`
+    <td><input id="et${idx}" value="${esc(t.text)}" style="width:100%"></td>
+    <td><input id="em${idx}" value="${esc(t.time)}" style="width:60px" placeholder="min"></td>
+    <td><input id="ec${idx}" value="${esc(t.conductor||'Harish/Girish')}" style="width:100%"></td>
+    <td><input id="el${idx}" value="${esc(t.link)}" placeholder="https://…" style="width:100%"></td>
+    <td style="white-space:nowrap">
+      <button class="save-btn" onclick="saveEdit(${idx})">✓</button>
+      <button class="cancel-btn" style="margin-left:4px" onclick="renderModalBody(_curDay)">✗</button>
+    </td>`;
+}
+function saveEdit(idx) {
+  const text=document.getElementById('et'+idx).value.trim();
+  const time=document.getElementById('em'+idx).value.trim();
+  const cond=document.getElementById('ec'+idx).value.trim();
+  const link=document.getElementById('el'+idx).value.trim();
+  if(!text) return;
+  const edits=getEdits();
+  const existing=edits.findIndex(e=>e.sheet===_curDay.sheet&&e.idx===idx);
+  const entry={sheet:_curDay.sheet,idx,text,time,conductor:cond,link};
+  if(existing>=0) edits[existing]=entry; else edits.push(entry);
+  saveEdits(edits);
+  _curDay=getSP().find(x=>x.sheet===_curDay.sheet);
+  renderModalBody(_curDay);
+  buildPlanner();
+}
+function clModal(){document.getElementById('mo').classList.remove('open');document.body.style.overflow='';}
+function clModalBg(e){if(e.target===document.getElementById('mo')) clModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') clModal();});
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+
+// ====== ADMIN KRA SCORE EDITOR ======
+const KRA_EDIT_TRAINERS = ['Girish A', 'Harish Bhat'];
+const KRA_AREAS_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
+function getKRAScores() {
+  try { return JSON.parse(localStorage.getItem('zh_kra_scores')||'{}'); } catch(e){return{};}
+}
+function saveKRAScoresFromUI() {
+  const scores = {};
+  KRA_AREAS_ALL.forEach(area => {
+    scores[area] = {};
+    KRA_EDIT_TRAINERS.forEach(t => {
+      const inp = document.getElementById('krae_'+btoa(area+'|'+t).replace(/=/g,''));
+      scores[area][t] = inp ? (parseFloat(inp.value)||0) : 0;
+    });
+  });
+  localStorage.setItem('zh_kra_scores', JSON.stringify(scores));
+  const btn = document.getElementById('kraeSaveBtn');
+  if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent='Save KRA Scores';},1500);}
+  // Refresh personal KRA cards if a trainer is shown
+  buildProgress();
+}
+function renderKRAEditor() {
+  // Insert/update the KRA editor card after the KRA framework section
+  let wrap = document.getElementById('kraEditorWrap');
+  if(!wrap){
+    wrap = document.createElement('div');
+    wrap.id = 'kraEditorWrap';
+    wrap.className = 'card';
+    wrap.style.marginTop = '18px';
+    const kfw = document.getElementById('kraFrameworkSection');
+    if(kfw && kfw.parentNode) kfw.parentNode.insertBefore(wrap, kfw.nextSibling);
+  }
+  const scores = getKRAScores();
+  const rows = KRA_AREAS_ALL.map(area => {
+    const wt = KRA_WEIGHTS[area]||0;
+    const clr = KRA_CLR[area]||'var(--ac)';
+    const cells = KRA_EDIT_TRAINERS.map(t => {
+      const val = (scores[area]||{})[t]||0;
+      const id = 'krae_'+btoa(area+'|'+t).replace(/=/g,'');
+      const pct = Math.min(100,val);
+      return `<td><div style="display:flex;align-items:center;gap:6px">
+        <input class="kra-score-inp" id="${id}" type="number" min="0" max="100" step="1" value="${val}" title="${area} score for ${t}">
+        <span style="color:var(--tx3);font-size:10px">%</span>
+        <span class="kra-bar-mini" style="width:${pct*0.8}px;background:${clr}"></span>
+      </div></td>`;
+    }).join('');
+    return `<tr><td style="color:var(--tx2)">${area} <span style="color:${clr};font-size:10px">(${wt}%)</span></td>${cells}</tr>`;
+  }).join('');
+  wrap.innerHTML = `<div class="ct" style="margin-bottom:12px">✏️ Edit Trainer KRA Scores <span style="font-size:11px;color:var(--tx3);font-weight:400">(Admin only — enter % achievement per area)</span></div>
+  <table class="kra-edit-tbl">
+    <thead><tr><th>KRA Area</th>${KRA_EDIT_TRAINERS.map(t=>`<th>${t.split(' ')[0]}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <button class="kra-save-btn" id="kraeSaveBtn" onclick="saveKRAScoresFromUI()">Save KRA Scores</button>`;
+}
+
+// ====== EXCEL DOWNLOAD ======
+function downloadDashboardExcel() {
+  if(typeof XLSX==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
+  const mhrs=getAllMonthlyHours();
+  const acts=getAllActs();
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1: Monthly Hours Summary
+  const summaryRows=[['Month',...TRAINERS,'Total']];
+  MONTHS_ORDER.forEach(m=>{
+    if(!mhrs[m]) return;
+    const row=[m,...TRAINERS.map(t=>(mhrs[m][t]||0))];
+    row.push(TRAINERS.reduce((s,t)=>s+(mhrs[m][t]||0),0));
+    summaryRows.push(row);
+  });
+  // Totals row
+  const totRow=['TOTAL',...TRAINERS.map(t=>MONTHS_ORDER.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0))];
+  totRow.push(totRow.slice(1).reduce((a,b)=>a+b,0));
+  summaryRows.push(totRow);
+  const ws1=XLSX.utils.aoa_to_sheet(summaryRows);
+  ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:14})),{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
+
+  // Sheet 2+: One sheet per month (Activity Log)
+  const monthsWithActs=[...new Set(acts.map(a=>a.month))].sort((a,b)=>MONTHS_ORDER.indexOf(a)-MONTHS_ORDER.indexOf(b));
+  monthsWithActs.forEach(m=>{
+    const rows=acts.filter(a=>a.month===m);
+    if(!rows.length) return;
+    const header=['Month','Type','Details','Trainer','Session','Topic','Hours','Start','End'];
+    const data=[header,...rows.map(r=>[r.month,r.type,r.details,r.trainer,r.session,r.topic,r.hours,r.start||'',r.end||''])];
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:14},{wch:20},{wch:24},{wch:22},{wch:10},{wch:28},{wch:8},{wch:10},{wch:10}];
+    const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
+    XLSX.utils.book_append_sheet(wb,ws,shName);
+  });
+
+  XLSX.writeFile(wb,'Zerodha_Trainer_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+// ====== MONTHLY PLANNER ======
+let CAL_YEAR = new Date().getFullYear();
+let CAL_MONTH = new Date().getMonth();
+let CAL_OWNER = 'admin';
+let EVT_MODAL_DATE = '';
+
+const CAL_DAYS_HDR = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const CAL_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const EVT_TYPES = {
+  'Training':   {bg:'rgba(0,229,195,.15)',   color:'#00e5c3'},
+  'Assessment': {bg:'rgba(245,158,11,.15)',  color:'#f59e0b'},
+  'Meeting':    {bg:'rgba(124,106,247,.15)', color:'#7c6af7'},
+  'Leave':      {bg:'rgba(239,68,68,.15)',   color:'#ef4444'},
+  'Other':      {bg:'rgba(90,97,128,.2)',    color:'#9098b8'},
+};
+const CAL_OWNER_LABELS = {admin:'Freeda (Mine)', girish:'Girish', harish:'Harish'};
+
+function getCalData(){try{return JSON.parse(localStorage.getItem('zh_cal')||'{}');}catch(e){return{};}}
+function saveCalData(d){localStorage.setItem('zh_cal',JSON.stringify(d));}
+
+function initCal(){
+  CAL_YEAR = new Date().getFullYear();
+  CAL_MONTH = new Date().getMonth();
+  if(CUR_ROLE==='girish'||CUR_ROLE==='harish') CAL_OWNER=CUR_ROLE;
+  else CAL_OWNER='admin';
+  renderCal();
+}
+
+function renderCal(){
+  const wrap=document.getElementById('calWrap');
+  if(!wrap) return;
+  const isAdmin=(CUR_ROLE==='admin');
+  const isGuest=(CUR_ROLE==='guest');
+  const canEdit=!isGuest;
+
+  // Owner switcher (admin only)
+  let ownerHtml='';
+  if(isAdmin){
+    ownerHtml=`<div class="cal-owner-tabs">${Object.entries(CAL_OWNER_LABELS).map(([k,l])=>`<button class="cal-owner-tab${CAL_OWNER===k?' active':''}" onclick="setCalOwner('${k}')">${l}</button>`).join('')}</div>`;
+  }
+
+  // Build grid
+  const today=new Date();
+  const firstDay=new Date(CAL_YEAR,CAL_MONTH,1);
+  const daysInMonth=new Date(CAL_YEAR,CAL_MONTH+1,0).getDate();
+  const startDow=(firstDay.getDay()+6)%7; // Mon=0
+  const data=getCalData();
+  const ownerData=(data[CAL_OWNER]||{});
+
+  let cells=CAL_DAYS_HDR.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++) cells+=`<div class="cal-cell empty"></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${CAL_YEAR}-${String(CAL_MONTH+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getFullYear()===CAL_YEAR&&today.getMonth()===CAL_MONTH&&today.getDate()===d;
+    const evts=ownerData[ds]||[];
+    const evtChips=evts.slice(0,3).map(e=>{
+      const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
+      return `<div class="cal-evt" style="background:${s.bg};color:${s.color}">${e.time?e.time+' ':''}${e.title}</div>`;
+    }).join('');
+    const moreHtml=evts.length>3?`<div class="cal-more">+${evts.length-3} more</div>`:'';
+    const hint=canEdit&&evts.length===0?`<div class="cal-add-hint">＋ add</div>`:'';
+    cells+=`<div class="cal-cell${isToday?' today':''}" onclick="${canEdit?`openEvtModal('${ds}')`:''}">`
+      +`<div class="cal-dn">${d}</div>${evtChips}${moreHtml}${hint}</div>`;
+  }
+
+  // Pad trailing cells to complete last row
+  const totalCells=startDow+daysInMonth;
+  const remainder=totalCells%7;
+  if(remainder>0){for(let i=0;i<7-remainder;i++) cells+=`<div class="cal-cell empty"></div>`;}
+
+  wrap.innerHTML=`
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">&#8249;</button>
+      <div class="cal-month-label">${CAL_MONTHS_FULL[CAL_MONTH]} ${CAL_YEAR}</div>
+      <button class="cal-nav-btn" onclick="calNext()">&#8250;</button>
+      <button class="cal-today-btn" onclick="calGoToday()">Today</button>
+      ${isGuest?'<span style="font-size:11px;color:var(--tx3);margin-left:8px">👁 Read-only view</span>':''}
+    </div>
+    ${ownerHtml}
+    <div class="cal-grid">${cells}</div>`;
+}
+
+function setCalOwner(k){CAL_OWNER=k;renderCal();}
+function calPrev(){if(--CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}renderCal();}
+function calNext(){if(++CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}renderCal();}
+function calGoToday(){CAL_YEAR=new Date().getFullYear();CAL_MONTH=new Date().getMonth();renderCal();}
+
+// Maps planner owner key → full trainer name for log entries
+const CAL_OWNER_TRAINER = {admin:'Freeda Reshma Dsouza', girish:'Girish A', harish:'Harish Bhat'};
+// Maps planner event type → activity log type
+const CAL_TYPE_TO_ACT = {Training:'Support Training', Assessment:'Assessment', Meeting:'Other', Leave:'Other', Other:'Other'};
+
+function dateToMonth(ds){
+  const d=new Date(ds+'T00:00:00');
+  return d.toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+}
+
+function openEvtModal(ds){
+  EVT_MODAL_DATE=ds;
+  const isGuest=(CUR_ROLE==='guest');
+  const data=getCalData();
+  const evts=((data[CAL_OWNER]||{})[ds])||[];
+  const d=new Date(ds+'T00:00:00');
+  const label=d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  let listHtml='';
+  if(evts.length){
+    listHtml=`<div class="evm-list">${evts.map((e,i)=>{
+      const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
+      const hoursTag=e.hours?`<span style="color:var(--ac);font-weight:700"> · ${e.hours}h</span>`:'';
+      return `<div class="evm-item">
+        <div class="evm-item-title" style="color:${s.color}">${e.title}${hoursTag}</div>
+        <div class="evm-item-meta">${[e.time,e.type,e.session,e.notes].filter(Boolean).join(' · ')}</div>
+        ${!isGuest?`<button class="evm-item-del" onclick="delEvt(${i})">✕</button>`:''}
+      </div>`;
+    }).join('')}</div>`;
+  } else {
+    listHtml=`<div class="evm-empty">No events planned for this day.</div>`;
+  }
+
+  let addHtml='';
+  if(!isGuest){
+    const typeOpts=Object.keys(EVT_TYPES).map(t=>`<option>${t}</option>`).join('');
+    addHtml=`<div class="evm-sep"></div>
+      <div class="evm-add-lbl">＋ Add Event</div>
+      <input class="evm-inp" id="evmTitleInp" placeholder="Session title / topic *" type="text">
+      <div class="evm-row2">
+        <input class="evm-inp" id="evmTimeInp" placeholder="Start time" type="time" style="margin-bottom:0">
+        <input class="evm-inp" id="evmHoursInp" placeholder="Duration (hrs) e.g. 2.5" type="number" min="0.25" step="0.25" style="margin-bottom:0">
+      </div>
+      <div class="evm-row2" style="margin-top:8px">
+        <select class="evm-inp" id="evmTypeInp" style="margin-bottom:0">${typeOpts}</select>
+        <select class="evm-inp" id="evmSessionInp" style="margin-bottom:0"><option>Online</option><option>Offline</option></select>
+      </div>
+      <input class="evm-inp" id="evmNotesInp" placeholder="Description / batch details (optional)" style="margin-top:8px">
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap">
+        <button class="evm-save" onclick="saveEvt()">Add Event</button>
+        <span style="font-size:10px;color:var(--tx3)">Hours will auto-sync to Dashboard</span>
+      </div>`;
+  }
+
+  document.getElementById('evmTitle2').textContent=label;
+  document.getElementById('evmBody').innerHTML=listHtml+addHtml;
+  document.getElementById('evmOverlay').style.display='flex';
+  if(!isGuest) setTimeout(()=>{const t=document.getElementById('evmTitleInp');if(t)t.focus();},60);
+}
+
+function closeEvtModal(){document.getElementById('evmOverlay').style.display='none';}
+
+function saveEvt(){
+  const titleEl=document.getElementById('evmTitleInp');
+  const title=(titleEl?.value||'').trim();
+  if(!title){if(titleEl)titleEl.style.borderColor='var(--red)';return;}
+  const time=document.getElementById('evmTimeInp')?.value||'';
+  const hoursRaw=parseFloat(document.getElementById('evmHoursInp')?.value||'0');
+  const hours=isNaN(hoursRaw)||hoursRaw<=0?0:hoursRaw;
+  const type=document.getElementById('evmTypeInp')?.value||'Training';
+  const session=document.getElementById('evmSessionInp')?.value||'Online';
+  const notes=(document.getElementById('evmNotesInp')?.value||'').trim();
+  const evtId=Date.now().toString(36);
+
+  // Save to calendar
+  const data=getCalData();
+  if(!data[CAL_OWNER]) data[CAL_OWNER]={};
+  if(!data[CAL_OWNER][EVT_MODAL_DATE]) data[CAL_OWNER][EVT_MODAL_DATE]=[];
+  data[CAL_OWNER][EVT_MODAL_DATE].push({id:evtId,title,time,hours,type,session,notes});
+  saveCalData(data);
+
+  // Auto-sync hours to dashboard activity log
+  if(hours>0){
+    const trainer=CAL_OWNER_TRAINER[CAL_OWNER]||CAL_OWNER;
+    const month=dateToMonth(EVT_MODAL_DATE);
+    const actType=CAL_TYPE_TO_ACT[type]||'Other';
+    const logs=getLogs();
+    logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:evtId});
+    saveLogs(logs);
+    buildDash();buildProgress();
+  }
+
+  openEvtModal(EVT_MODAL_DATE);
+  renderCal();
+}
+
+function delEvt(idx){
+  if(!confirm('Delete this event?')) return;
+  const data=getCalData();
+  const evts=((data[CAL_OWNER]||{})[EVT_MODAL_DATE])||[];
+  const evtId=evts[idx]?.id;
+  evts.splice(idx,1);
+  if(evts.length===0) delete data[CAL_OWNER][EVT_MODAL_DATE];
+  else data[CAL_OWNER][EVT_MODAL_DATE]=evts;
+  saveCalData(data);
+
+  // Remove corresponding dashboard log entry
+  if(evtId){
+    const logs=getLogs().filter(l=>l.plannerEventId!==evtId);
+    saveLogs(logs);
+    buildDash();buildProgress();
+  }
+
+  openEvtModal(EVT_MODAL_DATE);
+  renderCal();
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
