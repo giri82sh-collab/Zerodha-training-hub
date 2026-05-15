@@ -464,49 +464,48 @@ const ROLE_CFG = ROLE_CFG_BASE; // kept for compatibility
 let CUR_ROLE = 'admin';
 let CUR_TRAINER_NAME = '';
 
-// ====== GOOGLE SHEETS SYNC ======
-const GS_URL = 'https://script.google.com/macros/s/AKfycbzwTJGKJelj2WeKTTPdt47VocrUHVz8BA3funq-_7QgQsPczIB2RqJ1MZSugF0qobNu/exec';
+// ====== FIREBASE SYNC ======
+const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
 const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits'];
 let _syncTimer = null;
-
-async function gsGet(key) {
-  try {
-    const r = await fetch(GS_URL+'?_='+Date.now());
-    const d = await r.json();
-    if(d[key]) { localStorage.setItem(key, d[key]); return JSON.parse(d[key]); }
-  } catch(e) {}
-  return null;
-}
 
 async function gsSet(key, value) {
   const str = JSON.stringify(value);
   localStorage.setItem(key, str);
   try {
-    await fetch(GS_URL, {method:'POST', body: JSON.stringify({key, value: str})});
+    await fetch(`${FB_URL}/${key}.json`, {
+      method:'PUT', body:str,
+      headers:{'Content-Type':'application/json'}
+    });
   } catch(e) {}
 }
 
 async function syncAll() {
   try {
-    const r = await fetch(GS_URL+'?_='+Date.now());
+    const r = await fetch(`${FB_URL}/.json?_=${Date.now()}`);
     const d = await r.json();
-    let changed = false;
-    SYNC_KEYS.forEach(k => {
-      if(d[k] && d[k] !== localStorage.getItem(k)) {
-        localStorage.setItem(k, d[k]);
-        changed = true;
-      }
-    });
-    if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
+    if(d && typeof d==='object') {
+      let changed = false;
+      SYNC_KEYS.forEach(k => {
+        if(d[k]!==undefined && d[k]!==null) {
+          const remoteStr = JSON.stringify(d[k]);
+          if(remoteStr !== localStorage.getItem(k)) {
+            localStorage.setItem(k, remoteStr);
+            changed = true;
+          }
+        }
+      });
+      if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
+    }
   } catch(e) {}
   const badge = document.getElementById('syncBadge');
-  if(badge) badge.textContent = '🟢 Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  if(badge) badge.textContent = '🟢 Live ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
 }
 
 function startSyncLoop() {
   syncAll();
   if(_syncTimer) clearInterval(_syncTimer);
-  _syncTimer = setInterval(syncAll, 20000);
+  _syncTimer = setInterval(syncAll, 5000);
 }
 
 // ====== STORAGE ======
