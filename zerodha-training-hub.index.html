@@ -468,6 +468,7 @@ let CUR_TRAINER_NAME = '';
 const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
 const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits'];
 let _syncTimer = null;
+const _pendingWrites = new Set(); // keys with in-flight Firebase PUTs
 
 // Firebase converts arrays to {0:..,1:..} objects — convert back
 function fbFix(val) {
@@ -486,14 +487,17 @@ function fbFix(val) {
 async function gsSet(key, value) {
   const str = JSON.stringify(value);
   localStorage.setItem(key, str);
+  _pendingWrites.add(key);
   try {
-    // Wrap arrays in {v:[...]} to prevent Firebase array->object conversion
     const payload = Array.isArray(value) ? JSON.stringify({v:value}) : str;
     await fetch(`${FB_URL}/${key}.json`, {
       method:'PUT', body:payload,
       headers:{'Content-Type':'application/json'}
     });
-  } catch(e) {}
+  } catch(e) {
+  } finally {
+    _pendingWrites.delete(key);
+  }
 }
 
 async function syncAll() {
@@ -504,8 +508,8 @@ async function syncAll() {
     if(d && typeof d==='object') {
       let changed = false;
       SYNC_KEYS.forEach(k => {
+        if(_pendingWrites.has(k)) return; // write in flight — don't overwrite with stale remote
         if(d[k]!==undefined && d[k]!==null) {
-          // Unwrap array wrapper if present
           const raw = (d[k] && d[k].v!==undefined) ? d[k].v : fbFix(d[k]);
           const remoteStr = JSON.stringify(raw);
           if(remoteStr !== localStorage.getItem(k)) {
