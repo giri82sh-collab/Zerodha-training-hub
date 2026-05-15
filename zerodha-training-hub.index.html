@@ -309,6 +309,7 @@ input,select,textarea{font-family:inherit;}
       <button class="tab" data-tab="cal" onclick="swTab('cal',this)">📅 Monthly Planner</button>
     </div>
     <div class="nub" id="navUser" style="gap:10px;">
+      <span id="syncBadge" style="font-size:10px;color:var(--tx3);white-space:nowrap">🔄 Syncing...</span>
       <span onclick="openResetPw()" id="changePwLink" style="display:none;cursor:pointer;color:var(--tx3);font-size:11px;white-space:nowrap" title="Change your password">🔑 reset pw</span>
       <div onclick="doLogout()" style="display:flex;align-items:center;gap:6px;cursor:pointer;" title="Click to log out">
         <div class="nud" id="nud"></div><span id="nul"></span><span style="color:var(--tx3);font-size:11px">· logout</span>
@@ -463,11 +464,56 @@ const ROLE_CFG = ROLE_CFG_BASE; // kept for compatibility
 let CUR_ROLE = 'admin';
 let CUR_TRAINER_NAME = '';
 
+// ====== GOOGLE SHEETS SYNC ======
+const GS_URL = 'https://script.google.com/macros/s/AKfycbzNpSnVCrPVziO6L0hgo7HqtJTBOHGMgGwd5XbDLH1NcyTnVPVPhhVFkk363jhBxEcp/exec';
+const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits'];
+let _syncTimer = null;
+
+async function gsGet(key) {
+  try {
+    const r = await fetch(GS_URL+'?_='+Date.now());
+    const d = await r.json();
+    if(d[key]) { localStorage.setItem(key, d[key]); return JSON.parse(d[key]); }
+  } catch(e) {}
+  return null;
+}
+
+async function gsSet(key, value) {
+  const str = JSON.stringify(value);
+  localStorage.setItem(key, str);
+  try {
+    await fetch(GS_URL, {method:'POST', body: JSON.stringify({key, value: str})});
+  } catch(e) {}
+}
+
+async function syncAll() {
+  try {
+    const r = await fetch(GS_URL+'?_='+Date.now());
+    const d = await r.json();
+    let changed = false;
+    SYNC_KEYS.forEach(k => {
+      if(d[k] && d[k] !== localStorage.getItem(k)) {
+        localStorage.setItem(k, d[k]);
+        changed = true;
+      }
+    });
+    if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
+  } catch(e) {}
+  const badge = document.getElementById('syncBadge');
+  if(badge) badge.textContent = '🟢 Synced ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+function startSyncLoop() {
+  syncAll();
+  if(_syncTimer) clearInterval(_syncTimer);
+  _syncTimer = setInterval(syncAll, 20000);
+}
+
 // ====== STORAGE ======
 function getLogs() { try { return JSON.parse(localStorage.getItem('zh_logs')||'[]'); } catch(e){return[];} }
-function saveLogs(arr) { localStorage.setItem('zh_logs', JSON.stringify(arr)); }
+function saveLogs(arr) { gsSet('zh_logs', arr); }
 function getEdits() { try { return JSON.parse(localStorage.getItem('zh_edits')||'[]'); } catch(e){return[];} }
-function saveEdits(arr) { localStorage.setItem('zh_edits', JSON.stringify(arr)); }
+function saveEdits(arr) { gsSet('zh_edits', arr); }
 
 // Merge base SP with saved edits
 function getSP() {
@@ -569,6 +615,7 @@ function doLogin() {
   CUR_TRAINER_NAME = cfg.trainer || '';
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='block';
+  startSyncLoop();
   document.querySelectorAll('.tab').forEach(b=>{
     b.style.display=cfg.tabs.includes(b.dataset.tab)?'':' none';
   });
@@ -936,7 +983,7 @@ function saveKRAScoresFromUI() {
       scores[area][t] = inp ? (parseFloat(inp.value)||0) : 0;
     });
   });
-  localStorage.setItem('zh_kra_scores', JSON.stringify(scores));
+  gsSet('zh_kra_scores', scores);
   const btn = document.getElementById('kraeSaveBtn');
   if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent='Save KRA Scores';},1500);}
   // Refresh personal KRA cards if a trainer is shown
@@ -1034,7 +1081,7 @@ const EVT_TYPES = {
 const CAL_OWNER_LABELS = {admin:'Freeda (Mine)', girish:'Girish', harish:'Harish'};
 
 function getCalData(){try{return JSON.parse(localStorage.getItem('zh_cal')||'{}');}catch(e){return{};}}
-function saveCalData(d){localStorage.setItem('zh_cal',JSON.stringify(d));}
+function saveCalData(d){gsSet('zh_cal',d);}
 
 function initCal(){
   CAL_YEAR = new Date().getFullYear();
