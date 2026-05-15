@@ -91,6 +91,8 @@ input,select,textarea{font-family:inherit;}
 .evm-item-meta{font-size:10px;color:var(--tx2);margin-top:3px;}
 .evm-item-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:14px;cursor:pointer;padding:4px;}
 .evm-item-del:hover{color:var(--red);}
+.evm-item-edit{position:absolute;right:34px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:12px;cursor:pointer;padding:4px;}
+.evm-item-edit:hover{color:var(--ac);}
 .evm-sep{height:1px;background:var(--border);margin:14px 0;}
 .evm-add-lbl{font-size:11px;font-weight:700;color:var(--ac);margin-bottom:10px;}
 .evm-inp{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:9px 10px;border-radius:7px;font-size:12px;margin-bottom:8px;box-sizing:border-box;}
@@ -1137,6 +1139,7 @@ let CAL_YEAR = new Date().getFullYear();
 let CAL_MONTH = new Date().getMonth();
 let CAL_OWNER = 'admin';
 let EVT_MODAL_DATE = '';
+let EVT_EDIT_TARGET = null; // {owner, idx} when editing, null when adding
 
 const CAL_DAYS_HDR = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const CAL_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1247,11 +1250,12 @@ function openEvtModal(ds){
       const oc=CAL_OWNER_COLORS[e._owner]||'#9098b8';
       const ownerFirst=CAL_OWNER_TRAINER[e._owner]?.split(' ')[0]||e._owner;
       const hoursTag=e.hours?`<span style="color:var(--ac);font-weight:700"> · ${e.hours}h</span>`:'';
-      const canDel=!isGuest&&(CUR_ROLE==='admin'||e._owner===CUR_ROLE);
+      const canEdit=!isGuest&&(CUR_ROLE==='admin'||e._owner===CUR_ROLE);
       return `<div class="evm-item" style="border-left:3px solid ${oc}">
         <div class="evm-item-title" style="color:${s.color}">${e.title}${hoursTag} <span style="font-size:10px;color:${oc};font-weight:700;margin-left:4px">${ownerFirst}</span></div>
         <div class="evm-item-meta">${[e.time,e.type,e.session,e.notes].filter(Boolean).join(' · ')}</div>
-        ${canDel?`<button class="evm-item-del" onclick="delEvt('${e._owner}',${e._idx})">✕</button>`:''}
+        ${canEdit?`<button class="evm-item-edit" onclick="editEvt('${e._owner}',${e._idx})" title="Edit">✏️</button>`:''}
+        ${canEdit?`<button class="evm-item-del" onclick="delEvt('${e._owner}',${e._idx})" title="Delete">✕</button>`:''}
       </div>`;
     }).join('')}</div>`;
   } else {
@@ -1262,7 +1266,7 @@ function openEvtModal(ds){
   if(!isGuest){
     const typeOpts=Object.keys(EVT_TYPES).map(t=>`<option>${t}</option>`).join('');
     addHtml=`<div class="evm-sep"></div>
-      <div class="evm-add-lbl">＋ Add Event</div>
+      <div class="evm-add-lbl" id="evmFormLbl">＋ Add Event</div>
       <input class="evm-inp" id="evmTitleInp" placeholder="Session title / topic *" type="text">
       <div class="evm-row2">
         <input class="evm-inp" id="evmTimeInp" placeholder="Start time" type="time" style="margin-bottom:0">
@@ -1274,7 +1278,8 @@ function openEvtModal(ds){
       </div>
       <input class="evm-inp" id="evmNotesInp" placeholder="Description / batch details (optional)" style="margin-top:8px">
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap">
-        <button class="evm-save" onclick="saveEvt()">Add Event</button>
+        <button class="evm-save" id="evmSaveBtn" onclick="saveEvt()">Add Event</button>
+        <button id="evmCancelBtn" style="display:none;background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer" onclick="cancelEdit()">Cancel</button>
         <span style="font-size:10px;color:var(--tx3)">Hours will auto-sync to Dashboard</span>
       </div>`;
   }
@@ -1282,10 +1287,42 @@ function openEvtModal(ds){
   document.getElementById('evmTitle2').textContent=label;
   document.getElementById('evmBody').innerHTML=listHtml+addHtml;
   document.getElementById('evmOverlay').style.display='flex';
+  EVT_EDIT_TARGET=null;
   if(!isGuest) setTimeout(()=>{const t=document.getElementById('evmTitleInp');if(t)t.focus();},60);
 }
 
 function closeEvtModal(){document.getElementById('evmOverlay').style.display='none';}
+
+function editEvt(owner, idx){
+  const data=getCalData();
+  const e=((data[owner]||{})[EVT_MODAL_DATE]||[])[idx];
+  if(!e) return;
+  EVT_EDIT_TARGET={owner,idx};
+  // Pre-fill form
+  document.getElementById('evmTitleInp').value=e.title||'';
+  document.getElementById('evmTimeInp').value=e.time||'';
+  document.getElementById('evmHoursInp').value=e.hours||'';
+  document.getElementById('evmTypeInp').value=e.type||'Training';
+  document.getElementById('evmSessionInp').value=e.session||'Online';
+  document.getElementById('evmNotesInp').value=e.notes||'';
+  document.getElementById('evmFormLbl').textContent='✏️ Edit Event';
+  document.getElementById('evmSaveBtn').textContent='Update Event';
+  document.getElementById('evmCancelBtn').style.display='';
+  document.getElementById('evmTitleInp').focus();
+}
+
+function cancelEdit(){
+  EVT_EDIT_TARGET=null;
+  document.getElementById('evmTitleInp').value='';
+  document.getElementById('evmTimeInp').value='';
+  document.getElementById('evmHoursInp').value='';
+  document.getElementById('evmTypeInp').value='Training';
+  document.getElementById('evmSessionInp').value='Online';
+  document.getElementById('evmNotesInp').value='';
+  document.getElementById('evmFormLbl').textContent='＋ Add Event';
+  document.getElementById('evmSaveBtn').textContent='Add Event';
+  document.getElementById('evmCancelBtn').style.display='none';
+}
 
 function saveEvt(){
   const titleEl=document.getElementById('evmTitleInp');
@@ -1297,24 +1334,45 @@ function saveEvt(){
   const type=document.getElementById('evmTypeInp')?.value||'Training';
   const session=document.getElementById('evmSessionInp')?.value||'Online';
   const notes=(document.getElementById('evmNotesInp')?.value||'').trim();
-  const evtId=Date.now().toString(36);
 
-  // Save to calendar
   const data=getCalData();
-  if(!data[CAL_OWNER]) data[CAL_OWNER]={};
-  if(!data[CAL_OWNER][EVT_MODAL_DATE]) data[CAL_OWNER][EVT_MODAL_DATE]=[];
-  data[CAL_OWNER][EVT_MODAL_DATE].push({id:evtId,title,time,hours,type,session,notes});
-  saveCalData(data);
 
-  // Auto-sync hours to dashboard activity log
-  if(hours>0){
-    const trainer=CAL_OWNER_TRAINER[CAL_OWNER]||CAL_OWNER;
-    const month=dateToMonth(EVT_MODAL_DATE);
-    const actType=CAL_TYPE_TO_ACT[type]||'Other';
-    const logs=getLogs();
-    logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:evtId});
+  if(EVT_EDIT_TARGET){
+    // UPDATE existing event
+    const {owner,idx}=EVT_EDIT_TARGET;
+    const evts=(data[owner]||{})[EVT_MODAL_DATE]||[];
+    const oldEvt=evts[idx];
+    if(!oldEvt) return;
+    const oldId=oldEvt.id;
+    evts[idx]={...oldEvt,title,time,hours,type,session,notes};
+    data[owner][EVT_MODAL_DATE]=evts;
+    saveCalData(data);
+    // Update dashboard log: remove old entry, add updated one
+    let logs=getLogs().filter(l=>l.plannerEventId!==oldId);
+    if(hours>0){
+      const trainer=CAL_OWNER_TRAINER[owner]||owner;
+      const month=dateToMonth(EVT_MODAL_DATE);
+      const actType=CAL_TYPE_TO_ACT[type]||'Other';
+      logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:oldId});
+    }
     saveLogs(logs);
     buildDash();buildProgress();
+  } else {
+    // ADD new event
+    const evtId=Date.now().toString(36);
+    if(!data[CAL_OWNER]) data[CAL_OWNER]={};
+    if(!data[CAL_OWNER][EVT_MODAL_DATE]) data[CAL_OWNER][EVT_MODAL_DATE]=[];
+    data[CAL_OWNER][EVT_MODAL_DATE].push({id:evtId,title,time,hours,type,session,notes});
+    saveCalData(data);
+    if(hours>0){
+      const trainer=CAL_OWNER_TRAINER[CAL_OWNER]||CAL_OWNER;
+      const month=dateToMonth(EVT_MODAL_DATE);
+      const actType=CAL_TYPE_TO_ACT[type]||'Other';
+      const logs=getLogs();
+      logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:evtId});
+      saveLogs(logs);
+      buildDash();buildProgress();
+    }
   }
 
   openEvtModal(EVT_MODAL_DATE);
