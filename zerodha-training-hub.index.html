@@ -65,10 +65,9 @@ input,select,textarea{font-family:inherit;}
 .cal-month-label{font-size:18px;font-weight:700;min-width:170px;text-align:center;}
 .cal-today-btn{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:0 14px;height:34px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
 .cal-today-btn:hover{border-color:var(--ac);color:var(--ac);}
-.cal-owner-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-.cal-owner-tab{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
-.cal-owner-tab:hover{border-color:var(--ac);color:var(--ac);}
-.cal-owner-tab.active{border-color:var(--ac);color:var(--ac);background:rgba(0,229,195,.08);}
+.cal-legend{display:flex;gap:14px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.cal-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cal-legend-lbl{font-size:11px;color:var(--tx2);font-weight:600;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border-radius:10px;overflow:hidden;}
 .cal-dow{background:var(--s2);text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;}
 .cal-cell{background:var(--surface);min-height:110px;padding:7px 6px 5px;cursor:pointer;transition:background .12s;position:relative;vertical-align:top;}
@@ -77,7 +76,7 @@ input,select,textarea{font-family:inherit;}
 .cal-cell.today .cal-dn{color:var(--ac);font-weight:700;background:rgba(0,229,195,.15);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
 .cal-cell.empty{background:rgba(12,13,20,.6);cursor:default;}
 .cal-dn{font-size:11px;color:var(--tx2);margin-bottom:4px;}
-.cal-evt{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;line-height:1.4;}
+.cal-evt{font-size:10px;padding:2px 5px 2px 7px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;line-height:1.4;border-left-width:2px;border-left-style:solid;}
 .cal-add-hint{font-size:9px;color:var(--tx3);margin-top:4px;text-align:center;}
 .cal-more{font-size:9px;color:var(--ac);margin-top:2px;font-weight:600;}
 /* EVENT MODAL */
@@ -1148,7 +1147,7 @@ const EVT_TYPES = {
   'Leave':      {bg:'rgba(239,68,68,.15)',   color:'#ef4444'},
   'Other':      {bg:'rgba(90,97,128,.2)',    color:'#9098b8'},
 };
-const CAL_OWNER_LABELS = {admin:'Freeda (Mine)', girish:'Girish', harish:'Harish'};
+const CAL_OWNER_COLORS = {admin:'#00e5c3', girish:'#7c6af7', harish:'#f59e0b'};
 
 function getCalData(){try{return JSON.parse(localStorage.getItem('zh_cal')||'{}');}catch(e){return{};}}
 function saveCalData(d){gsSet('zh_cal',d);}
@@ -1156,31 +1155,24 @@ function saveCalData(d){gsSet('zh_cal',d);}
 function initCal(){
   CAL_YEAR = new Date().getFullYear();
   CAL_MONTH = new Date().getMonth();
-  if(CUR_ROLE==='girish'||CUR_ROLE==='harish') CAL_OWNER=CUR_ROLE;
-  else CAL_OWNER='admin';
+  CAL_OWNER = (CUR_ROLE==='girish'||CUR_ROLE==='harish') ? CUR_ROLE : 'admin';
   renderCal();
 }
 
 function renderCal(){
   const wrap=document.getElementById('calWrap');
   if(!wrap) return;
-  const isAdmin=(CUR_ROLE==='admin');
   const isGuest=(CUR_ROLE==='guest');
   const canEdit=!isGuest;
 
-  // Owner switcher (admin only)
-  let ownerHtml='';
-  if(isAdmin){
-    ownerHtml=`<div class="cal-owner-tabs">${Object.entries(CAL_OWNER_LABELS).map(([k,l])=>`<button class="cal-owner-tab${CAL_OWNER===k?' active':''}" onclick="setCalOwner('${k}')">${l}</button>`).join('')}</div>`;
-  }
-
-  // Build grid
   const today=new Date();
   const firstDay=new Date(CAL_YEAR,CAL_MONTH,1);
   const daysInMonth=new Date(CAL_YEAR,CAL_MONTH+1,0).getDate();
-  const startDow=(firstDay.getDay()+6)%7; // Mon=0
+  const startDow=(firstDay.getDay()+6)%7;
   const data=getCalData();
-  const ownerData=(data[CAL_OWNER]||{});
+
+  // Legend showing all three owners
+  const legendHtml=`<div class="cal-legend">${Object.entries(CAL_OWNER_COLORS).map(([k,c])=>`<span class="cal-legend-dot" style="background:${c}"></span><span class="cal-legend-lbl">${CAL_OWNER_TRAINER[k]?.split(' ')[0]||k}</span>`).join('')}</div>`;
 
   let cells=CAL_DAYS_HDR.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<startDow;i++) cells+=`<div class="cal-cell empty"></div>`;
@@ -1188,18 +1180,23 @@ function renderCal(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${CAL_YEAR}-${String(CAL_MONTH+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=today.getFullYear()===CAL_YEAR&&today.getMonth()===CAL_MONTH&&today.getDate()===d;
-    const evts=ownerData[ds]||[];
-    const evtChips=evts.slice(0,3).map(e=>{
+    // Merge all owners' events for this day
+    const allEvts=[];
+    Object.keys(CAL_OWNER_COLORS).forEach(owner=>{
+      ((data[owner]||{})[ds]||[]).forEach(e=>allEvts.push({...e,_owner:owner}));
+    });
+    allEvts.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const evtChips=allEvts.slice(0,3).map(e=>{
       const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
-      return `<div class="cal-evt" style="background:${s.bg};color:${s.color}">${e.time?e.time+' ':''}${e.title}</div>`;
+      const oc=CAL_OWNER_COLORS[e._owner]||'#9098b8';
+      return `<div class="cal-evt" style="background:${s.bg};color:${s.color};border-left-color:${oc}">${e.time?e.time+' ':''}${e.title}</div>`;
     }).join('');
-    const moreHtml=evts.length>3?`<div class="cal-more">+${evts.length-3} more</div>`:'';
-    const hint=canEdit&&evts.length===0?`<div class="cal-add-hint">＋ add</div>`:'';
+    const moreHtml=allEvts.length>3?`<div class="cal-more">+${allEvts.length-3} more</div>`:'';
+    const hint=canEdit&&allEvts.length===0?`<div class="cal-add-hint">＋ add</div>`:'';
     cells+=`<div class="cal-cell${isToday?' today':''}" onclick="${canEdit?`openEvtModal('${ds}')`:''}">`
       +`<div class="cal-dn">${d}</div>${evtChips}${moreHtml}${hint}</div>`;
   }
 
-  // Pad trailing cells to complete last row
   const totalCells=startDow+daysInMonth;
   const remainder=totalCells%7;
   if(remainder>0){for(let i=0;i<7-remainder;i++) cells+=`<div class="cal-cell empty"></div>`;}
@@ -1212,11 +1209,9 @@ function renderCal(){
       <button class="cal-today-btn" onclick="calGoToday()">Today</button>
       ${isGuest?'<span style="font-size:11px;color:var(--tx3);margin-left:8px">👁 Read-only view</span>':''}
     </div>
-    ${ownerHtml}
+    ${legendHtml}
     <div class="cal-grid">${cells}</div>`;
 }
-
-function setCalOwner(k){CAL_OWNER=k;renderCal();}
 function calPrev(){if(--CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}renderCal();}
 function calNext(){if(++CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}renderCal();}
 function calGoToday(){CAL_YEAR=new Date().getFullYear();CAL_MONTH=new Date().getMonth();renderCal();}
@@ -1235,19 +1230,28 @@ function openEvtModal(ds){
   EVT_MODAL_DATE=ds;
   const isGuest=(CUR_ROLE==='guest');
   const data=getCalData();
-  const evts=((data[CAL_OWNER]||{})[ds])||[];
   const d=new Date(ds+'T00:00:00');
   const label=d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+  // Collect all owners' events for this day
+  const allEvts=[];
+  Object.keys(CAL_OWNER_COLORS).forEach(owner=>{
+    ((data[owner]||{})[ds]||[]).forEach((e,i)=>allEvts.push({...e,_owner:owner,_idx:i}));
+  });
+  allEvts.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+
   let listHtml='';
-  if(evts.length){
-    listHtml=`<div class="evm-list">${evts.map((e,i)=>{
+  if(allEvts.length){
+    listHtml=`<div class="evm-list">${allEvts.map(e=>{
       const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
+      const oc=CAL_OWNER_COLORS[e._owner]||'#9098b8';
+      const ownerFirst=CAL_OWNER_TRAINER[e._owner]?.split(' ')[0]||e._owner;
       const hoursTag=e.hours?`<span style="color:var(--ac);font-weight:700"> · ${e.hours}h</span>`:'';
-      return `<div class="evm-item">
-        <div class="evm-item-title" style="color:${s.color}">${e.title}${hoursTag}</div>
+      const canDel=!isGuest&&(CUR_ROLE==='admin'||e._owner===CUR_ROLE);
+      return `<div class="evm-item" style="border-left:3px solid ${oc}">
+        <div class="evm-item-title" style="color:${s.color}">${e.title}${hoursTag} <span style="font-size:10px;color:${oc};font-weight:700;margin-left:4px">${ownerFirst}</span></div>
         <div class="evm-item-meta">${[e.time,e.type,e.session,e.notes].filter(Boolean).join(' · ')}</div>
-        ${!isGuest?`<button class="evm-item-del" onclick="delEvt(${i})">✕</button>`:''}
+        ${canDel?`<button class="evm-item-del" onclick="delEvt('${e._owner}',${e._idx})">✕</button>`:''}
       </div>`;
     }).join('')}</div>`;
   } else {
@@ -1317,17 +1321,16 @@ function saveEvt(){
   renderCal();
 }
 
-function delEvt(idx){
+function delEvt(owner, idx){
   if(!confirm('Delete this event?')) return;
   const data=getCalData();
-  const evts=((data[CAL_OWNER]||{})[EVT_MODAL_DATE])||[];
+  const evts=((data[owner]||{})[EVT_MODAL_DATE])||[];
   const evtId=evts[idx]?.id;
   evts.splice(idx,1);
-  if(evts.length===0) delete data[CAL_OWNER][EVT_MODAL_DATE];
-  else data[CAL_OWNER][EVT_MODAL_DATE]=evts;
+  if(evts.length===0) delete data[owner][EVT_MODAL_DATE];
+  else data[owner][EVT_MODAL_DATE]=evts;
   saveCalData(data);
 
-  // Remove corresponding dashboard log entry
   if(evtId){
     const logs=getLogs().filter(l=>l.plannerEventId!==evtId);
     saveLogs(logs);
