@@ -612,6 +612,7 @@ function doLogin() {
   }
   CUR_ROLE=selRoleId;
   CUR_TRAINER_NAME = cfg.trainer || '';
+  sessionStorage.setItem('zh_session', JSON.stringify({role:selRoleId, trainer:CUR_TRAINER_NAME}));
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='block';
   startSyncLoop();
@@ -657,12 +658,58 @@ function doLogin() {
   buildPlanner();
 }
 function doLogout() {
+  sessionStorage.removeItem('zh_session');
+  if(_syncTimer) clearInterval(_syncTimer);
   document.getElementById('appShell').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('pwIn').value='';
   document.getElementById('lerr').textContent='';
   selRole('admin',document.querySelector('.rc[data-role=admin]'));
 }
+
+function restoreSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('zh_session')||'null');
+    if(!s||!s.role) return;
+    const cfg = getRoleCfg(s.role);
+    if(!cfg||!cfg.tabs) return;
+    selRoleId = s.role;
+    CUR_ROLE = s.role;
+    CUR_TRAINER_NAME = s.trainer||'';
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appShell').style.display='block';
+    startSyncLoop();
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.style.display=cfg.tabs.includes(b.dataset.tab)?'':' none';
+    });
+    const first=document.querySelector(`.tab[data-tab="${cfg.tabs[0]}"]`);
+    swTab(cfg.tabs[0],first);
+    document.getElementById('nud').style.background=cfg.color;
+    document.getElementById('nul').textContent=cfg.label;
+    const isTrainerRole=(s.role==='girish'||s.role==='harish'||s.role==='admin');
+    const lfw=document.getElementById('logFormWrap');
+    if(lfw) lfw.style.display=isTrainerRole?'block':'none';
+    const logTSel=document.getElementById('logTrainer');
+    if(logTSel&&CUR_TRAINER_NAME){
+      for(let i=0;i<logTSel.options.length;i++){
+        if(logTSel.options[i].value===CUR_TRAINER_NAME||logTSel.options[i].text===CUR_TRAINER_NAME){logTSel.selectedIndex=i;break;}
+      }
+      logTSel.disabled=(s.role!=='admin');
+    }
+    const dlBtn=document.getElementById('dlDashBtn');
+    const dlRow=document.getElementById('progDlRow');
+    if(dlBtn) dlBtn.style.display=isTrainerRole?'':'none';
+    if(dlRow) dlRow.style.display=isTrainerRole?'flex':'none';
+    const cpLink=document.getElementById('changePwLink');
+    if(cpLink) cpLink.style.display=(s.role==='admin'||s.role==='girish'||s.role==='harish')?'':'none';
+    if(s.role==='girish'||s.role==='harish') document.getElementById('canEditNote').textContent='✏ You can edit topics, times and links';
+    else if(s.role==='admin') document.getElementById('canEditNote').textContent='✏ Admin mode — full editing enabled';
+    if(cfg.tabs.includes('dash')) buildDash();
+    if(cfg.tabs.includes('prog')) buildProgress();
+    buildPlanner();
+  } catch(e) {}
+}
+window.addEventListener('load', restoreSession);
 const _ss=document.createElement('style');
 _ss.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';
 document.head.appendChild(_ss);
