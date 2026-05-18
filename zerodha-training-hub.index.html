@@ -231,6 +231,9 @@ input,select,textarea{font-family:inherit;}
 .mtit{font-size:20px;font-weight:700;line-height:1.2;}
 .mcl{background:none;border:none;color:var(--tx2);font-size:21px;padding:4px 7px;}
 .mcl:hover{color:var(--ac2);}
+.mcopy{background:var(--s2);border:1px solid var(--border);color:var(--tx2);font-size:11px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;transition:all .15s;margin-right:8px;white-space:nowrap;}
+.mcopy:hover{border-color:var(--ac);color:var(--ac);}
+.mcopy.copied{border-color:#00e5c3;color:#00e5c3;background:rgba(0,229,195,.08);}
 .mbdy{padding:20px 24px 26px;}
 .agb{background:var(--s2);border-left:3px solid var(--ac2);padding:13px 15px;border-radius:0 5px 5px 0;margin-bottom:20px;font-size:13.5px;line-height:1.65;color:var(--tx2);}
 .agl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ac2);font-weight:700;margin-bottom:5px;}
@@ -434,6 +437,7 @@ input,select,textarea{font-family:inherit;}
     <div class="mab" id="mab"></div>
     <div class="mhdr">
       <div style="flex:1"><div class="mtag" id="mtag"></div><div class="mtit" id="mtit"></div></div>
+      <button class="mcopy" id="mcopyBtn" onclick="copyDayTopics()" title="Copy topics to clipboard">📋 Copy</button>
       <button class="mcl" onclick="clModal()">✕</button>
     </div>
     <div class="mbdy" id="mbdy"></div>
@@ -1035,6 +1039,35 @@ function saveEdit(idx) {
 function clModal(){document.getElementById('mo').classList.remove('open');document.body.style.overflow='';}
 function clModalBg(e){if(e.target===document.getElementById('mo')) clModal();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape') clModal();});
+
+function copyDayTopics(){
+  if(!_curDay) return;
+  const lines=[_curDay.title,''];
+  _curDay.topics.forEach(t=>{
+    if(t.type==='break'){
+      lines.push(`— ${t.name} —`);
+    } else {
+      const time=t.time?` (${t.time} min)`:'';
+      lines.push(`• ${t.text}${time}`);
+    }
+  });
+  const text=lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('mcopyBtn');
+    if(!btn) return;
+    btn.textContent='✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);
+  }).catch(()=>{
+    // Fallback for older browsers
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn=document.getElementById('mcopyBtn');
+    if(btn){btn.textContent='✅ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);}
+  });
+}
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
