@@ -1302,7 +1302,7 @@ function openEvtModal(ds){
       <div class="evm-add-lbl" id="evmFormLbl">＋ Add Event</div>
       <input class="evm-inp" id="evmTitleInp" placeholder="Session title / topic *" type="text">
       <div class="evm-row2">
-        <input class="evm-inp" id="evmTimeInp" placeholder="Start time" type="time" style="margin-bottom:0">
+        <select class="evm-inp" id="evmTimeInp" style="margin-bottom:0"><option value="">-- Start Time --</option></select>
         <input class="evm-inp" id="evmHoursInp" placeholder="Duration (hrs) e.g. 2.5" type="number" min="0.25" step="0.25" style="margin-bottom:0">
       </div>
       <div class="evm-row2" style="margin-top:8px">
@@ -1321,6 +1321,22 @@ function openEvtModal(ds){
   document.getElementById('evmBody').innerHTML=listHtml+addHtml;
   document.getElementById('evmOverlay').style.display='flex';
   EVT_EDIT_TARGET=null;
+  // Populate time dropdown: 7:00 AM – 8:00 PM in 30-min slots
+  const timeSel=document.getElementById('evmTimeInp');
+  if(timeSel){
+    for(let h=7;h<=20;h++){
+      ['00','30'].forEach(m=>{
+        if(h===20&&m==='30') return;
+        const hh=String(h).padStart(2,'0');
+        const ampm=h<12?'AM':h===12?'PM':'PM';
+        const h12=h===0?12:h>12?h-12:h;
+        const opt=document.createElement('option');
+        opt.value=`${hh}:${m}`;
+        opt.textContent=`${h12}:${m} ${ampm}`;
+        timeSel.appendChild(opt);
+      });
+    }
+  }
   if(!isGuest) setTimeout(()=>{const t=document.getElementById('evmTitleInp');if(t)t.focus();},60);
 }
 
