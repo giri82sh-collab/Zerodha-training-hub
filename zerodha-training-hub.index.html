@@ -57,6 +57,19 @@ input,select,textarea{font-family:inherit;}
 .kra-save-btn{background:var(--ac);color:#0c0d14;border:none;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-top:10px;}
 .kra-save-btn:hover{background:#00c4a8;}
 .kra-bar-mini{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-left:4px;}
+/* Monthly KRA Rating */
+.kra-month-sel{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:16px;}
+.kra-month-sel:focus{outline:none;border-color:var(--ac);}
+.kra-rating-sel{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;width:80px;}
+.kra-rating-sel:focus{outline:none;border-color:var(--ac);}
+.kra-rating-sel.val-1{border-color:#00e5c3;color:#00e5c3;background:rgba(0,229,195,.08);}
+.kra-rating-sel.val-0{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.08);}
+.kra-rating-sel.val-na{border-color:var(--tx3);color:var(--tx3);}
+.kra-avg-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.kra-avg-tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--border);}
+.kra-avg-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.kra-avg-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.kra-leg{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 16px;font-size:11px;color:var(--tx2);}
 
 /* MONTHLY PLANNER */
 .cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
@@ -471,7 +484,7 @@ let CUR_TRAINER_NAME = '';
 
 // ====== FIREBASE SYNC ======
 const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
-const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits'];
+const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits','zh_kra_monthly'];
 let _syncTimer = null;
 const _pendingWrites = new Set(); // keys with in-flight Firebase PUTs
 
@@ -1078,23 +1091,21 @@ const KRA_AREAS_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
 function getKRAScores() {
   try { return JSON.parse(localStorage.getItem('zh_kra_scores')||'{}'); } catch(e){return{};}
 }
-function saveKRAScoresFromUI() {
-  const scores = {};
-  KRA_AREAS_ALL.forEach(area => {
-    scores[area] = {};
-    KRA_EDIT_TRAINERS.forEach(t => {
-      const inp = document.getElementById('krae_'+btoa(area+'|'+t).replace(/=/g,''));
-      scores[area][t] = inp ? (parseFloat(inp.value)||0) : 0;
-    });
-  });
-  gsSet('zh_kra_scores', scores);
-  const btn = document.getElementById('kraeSaveBtn');
-  if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent='Save KRA Scores';},1500);}
-  // Refresh personal KRA cards if a trainer is shown
-  buildProgress();
+function getKRAMonthly() {
+  try { return JSON.parse(localStorage.getItem('zh_kra_monthly')||'{}'); } catch(e){return{};}
 }
+function saveKRAMonthly(data) {
+  gsSet('zh_kra_monthly', data);
+}
+
+// Returns current month string e.g. "May 2026"
+function currentMonthStr() {
+  return new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+}
+
+let _kraSelMonth = currentMonthStr();
+
 function renderKRAEditor() {
-  // Insert/update the KRA editor card after the KRA framework section
   let wrap = document.getElementById('kraEditorWrap');
   if(!wrap){
     wrap = document.createElement('div');
@@ -1104,28 +1115,114 @@ function renderKRAEditor() {
     const kfw = document.getElementById('kraFrameworkSection');
     if(kfw && kfw.parentNode) kfw.parentNode.insertBefore(wrap, kfw.nextSibling);
   }
-  const scores = getKRAScores();
+  // Make sure selected month is valid
+  if(!MONTHS_ORDER.includes(_kraSelMonth)) _kraSelMonth = currentMonthStr();
+
+  const monthly = getKRAMonthly();
+  const monthOpts = MONTHS_ORDER.map(m=>`<option value="${m}"${m===_kraSelMonth?' selected':''}>${m}</option>`).join('');
+
+  // Build rating rows for selected month
   const rows = KRA_AREAS_ALL.map(area => {
     const wt = KRA_WEIGHTS[area]||0;
     const clr = KRA_CLR[area]||'var(--ac)';
     const cells = KRA_EDIT_TRAINERS.map(t => {
-      const val = (scores[area]||{})[t]||0;
-      const id = 'krae_'+btoa(area+'|'+t).replace(/=/g,'');
-      const pct = Math.min(100,val);
-      return `<td><div style="display:flex;align-items:center;gap:6px">
-        <input class="kra-score-inp" id="${id}" type="number" min="0" max="100" step="1" value="${val}" title="${area} score for ${t}">
-        <span style="color:var(--tx3);font-size:10px">%</span>
-        <span class="kra-bar-mini" style="width:${pct*0.8}px;background:${clr}"></span>
-      </div></td>`;
+      const val = ((monthly[t]||{})[_kraSelMonth]||{})[area] ?? 'na';
+      const id = `krm_${t.replace(/\s+/g,'_')}_${area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+      return `<td><select class="kra-rating-sel val-${val}" id="${id}" onchange="kraRatingColor(this)">
+        <option value="na"${val==='na'?' selected':''}>N/A</option>
+        <option value="1"${val==='1'?' selected':''}>1 — Done ✅</option>
+        <option value="0"${val==='0'?' selected':''}>0 — Missed ❌</option>
+      </select></td>`;
     }).join('');
-    return `<tr><td style="color:var(--tx2)">${area} <span style="color:${clr};font-size:10px">(${wt}%)</span></td>${cells}</tr>`;
+    return `<tr>
+      <td><span style="color:${clr};font-weight:600">${area}</span><br><span style="font-size:10px;color:var(--tx3)">${wt}% weight</span></td>
+      ${cells}
+    </tr>`;
   }).join('');
-  wrap.innerHTML = `<div class="ct" style="margin-bottom:12px">✏️ Edit Trainer KRA Scores <span style="font-size:11px;color:var(--tx3);font-weight:400">(Admin only — enter % achievement per area)</span></div>
+
+  // Yearly average summary
+  const avgRows = KRA_AREAS_ALL.map(area => {
+    const clr = KRA_CLR[area]||'var(--ac)';
+    const cells = KRA_EDIT_TRAINERS.map(t => {
+      const trainerData = monthly[t]||{};
+      const scores = MONTHS_ORDER.map(m=>((trainerData[m]||{})[area])).filter(v=>v==='0'||v==='1').map(Number);
+      if(!scores.length) return `<td><span class="kra-avg-chip" style="background:var(--s2);color:var(--tx3)">—</span></td>`;
+      const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+      const pct = Math.round(avg*100);
+      const chipClr = pct>=80?'rgba(0,229,195,.15)':pct>=50?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)';
+      const txtClr = pct>=80?'#00e5c3':pct>=50?'#f59e0b':'#ef4444';
+      return `<td><span class="kra-avg-chip" style="background:${chipClr};color:${txtClr}">${pct}%</span><span style="font-size:10px;color:var(--tx3);margin-left:4px">(${scores.length} mo)</span></td>`;
+    }).join('');
+    return `<tr><td style="color:${clr};font-weight:600">${area}</td>${cells}</tr>`;
+  }).join('');
+
+  // Overall yearly score per trainer
+  const overallRow = KRA_EDIT_TRAINERS.map(t => {
+    const trainerData = monthly[t]||{};
+    let weightedSum=0, weightedTotal=0;
+    KRA_AREAS_ALL.forEach(area => {
+      const wt = KRA_WEIGHTS[area]||0;
+      const scores = MONTHS_ORDER.map(m=>((trainerData[m]||{})[area])).filter(v=>v==='0'||v==='1').map(Number);
+      if(scores.length){
+        const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+        weightedSum += avg * wt;
+        weightedTotal += wt;
+      }
+    });
+    if(!weightedTotal) return `<td><span class="kra-avg-chip" style="background:var(--s2);color:var(--tx3)">No data</span></td>`;
+    const overall = Math.round((weightedSum/weightedTotal)*100);
+    const chipClr = overall>=80?'rgba(0,229,195,.2)':overall>=50?'rgba(245,158,11,.2)':'rgba(239,68,68,.2)';
+    const txtClr = overall>=80?'#00e5c3':overall>=50?'#f59e0b':'#ef4444';
+    return `<td><span class="kra-avg-chip" style="background:${chipClr};color:${txtClr};font-size:13px">${overall}%</span></td>`;
+  }).join('');
+
+  wrap.innerHTML = `
+  <div class="ct" style="margin-bottom:4px">📊 Monthly KRA Rating <span style="font-size:11px;color:var(--tx3);font-weight:400">(Admin only)</span></div>
+  <div class="kra-leg">
+    <span>🟢 <b>1</b> — Had the activity & completed it</span>
+    <span>🔴 <b>0</b> — Had the activity but did NOT complete it</span>
+    <span>⚪ <b>N/A</b> — Activity not applicable this month</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <label style="font-size:12px;color:var(--tx2);font-weight:600">Rating Month:</label>
+    <select class="kra-month-sel" onchange="_kraSelMonth=this.value;renderKRAEditor()">${monthOpts}</select>
+  </div>
   <table class="kra-edit-tbl">
     <thead><tr><th>KRA Area</th>${KRA_EDIT_TRAINERS.map(t=>`<th>${t.split(' ')[0]}</th>`).join('')}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
-  <button class="kra-save-btn" id="kraeSaveBtn" onclick="saveKRAScoresFromUI()">Save KRA Scores</button>`;
+  <button class="kra-save-btn" onclick="saveKRAMonthlyFromUI()">💾 Save ${_kraSelMonth} Ratings</button>
+
+  <div class="ct" style="margin-top:26px;margin-bottom:8px">📈 Yearly Appraisal Summary <span style="font-size:11px;color:var(--tx3);font-weight:400">(average across all rated months — N/A excluded)</span></div>
+  <table class="kra-avg-tbl">
+    <thead><tr><th>KRA Area</th>${KRA_EDIT_TRAINERS.map(t=>`<th>${t.split(' ')[0]}</th>`).join('')}</tr></thead>
+    <tbody>${avgRows}
+    <tr style="border-top:2px solid var(--border)">
+      <td style="font-weight:700;color:var(--tx)">Overall Score</td>${overallRow}
+    </tr>
+    </tbody>
+  </table>`;
+}
+
+function kraRatingColor(sel){
+  sel.className='kra-rating-sel val-'+sel.value;
+}
+
+function saveKRAMonthlyFromUI(){
+  const monthly = getKRAMonthly();
+  KRA_EDIT_TRAINERS.forEach(t => {
+    if(!monthly[t]) monthly[t]={};
+    if(!monthly[t][_kraSelMonth]) monthly[t][_kraSelMonth]={};
+    KRA_AREAS_ALL.forEach(area => {
+      const id = `krm_${t.replace(/\s+/g,'_')}_${area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+      const sel = document.getElementById(id);
+      if(sel) monthly[t][_kraSelMonth][area] = sel.value;
+    });
+  });
+  saveKRAMonthly(monthly);
+  const btn = document.querySelector('#kraEditorWrap .kra-save-btn');
+  if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent=`💾 Save ${_kraSelMonth} Ratings`;},1500);}
+  renderKRAEditor();
 }
 
 // ====== EXCEL DOWNLOAD ======
