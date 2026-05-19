@@ -70,6 +70,12 @@ input,select,textarea{font-family:inherit;}
 .kra-avg-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
 .kra-avg-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
 .kra-leg{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 16px;font-size:11px;color:var(--tx2);}
+.nism-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;}
+.nism-tbl th{background:var(--s2);padding:7px 10px;text-align:left;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--border);}
+.nism-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.nism-expiry-ok{color:#00e5c3;font-weight:600;font-size:11px;}
+.nism-expiry-warn{color:#f59e0b;font-weight:600;font-size:11px;}
+.nism-expiry-exp{color:#ef4444;font-weight:600;font-size:11px;}
 
 /* MONTHLY PLANNER */
 .cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
@@ -370,6 +376,7 @@ input,select,textarea{font-family:inherit;}
         <select class="fsel" id="ftrn" onchange="renderTable()"><option value="all">All Trainers</option></select>
         <select class="fsel" id="ftyp" onchange="renderTable()"><option value="all">All Types</option></select>
         <input class="fsel-hrs" id="fMinHrs" type="number" min="0" step="0.5" placeholder="Min hours…" onchange="renderTable()" title="Filter by minimum hours">
+        <button class="fsel" style="cursor:pointer;color:var(--ac);border-color:var(--ac);background:rgba(0,229,195,.07);font-weight:700" onclick="document.getElementById('fmth').value='all';document.getElementById('ftrn').value='all';document.getElementById('ftyp').value='all';document.getElementById('fMinHrs').value='';renderTable()">✕ Show All</button>
       </div>
       <div class="tw"><table class="dt"><thead><tr><th>Month</th><th>Type</th><th>Details</th><th>Trainer</th><th>Session</th><th>Topic</th><th>Hours</th></tr></thead><tbody id="tbdy"></tbody></table></div>
     </div>
@@ -395,6 +402,35 @@ input,select,textarea{font-family:inherit;}
         <button class="fsub" onclick="logActivity()">Save Activity</button>
         <span class="ferr" id="logErr"></span><span class="fok" id="logOk"></span>
       </div>
+    </div>
+    <!-- NISM Certification -->
+    <div class="card" id="nismSection" style="margin-bottom:18px">
+      <div class="ct">🏅 NISM Certifications <span style="font-size:11px;color:var(--tx3);font-weight:400">— counts toward Process Improvement KRA</span></div>
+      <div id="nismFormWrap">
+        <div class="form-grid" style="margin-top:10px">
+          <div class="fg"><label class="fl">Certificate Name</label><select class="fi" id="nismName">
+            <option>NISM Series I – Currency Derivatives</option>
+            <option>NISM Series II-A – Registrars &amp; Transfer Agents</option>
+            <option>NISM Series V-A – Mutual Fund Distributors</option>
+            <option>NISM Series VII – Securities Operations &amp; Risk Management</option>
+            <option>NISM Series VIII – Equity Derivatives</option>
+            <option>NISM Series X-A – Investment Adviser (Level 1)</option>
+            <option>NISM Series X-B – Investment Adviser (Level 2)</option>
+            <option>NISM Series XII – Securities Markets Foundation</option>
+            <option>NISM Series XV – Research Analyst</option>
+            <option>NISM Series XVII – Retirement Adviser</option>
+            <option>Other NISM / NCFM Certification</option>
+          </select></div>
+          <div class="fg"><label class="fl">Certificate Number</label><input class="fi" id="nismCertNo" placeholder="e.g. NISM-12345678"></div>
+          <div class="fg"><label class="fl">Issue Date</label><input class="fi" id="nismIssued" type="date"></div>
+          <div class="fg"><label class="fl">Expiry Date</label><input class="fi" id="nismExpiry" type="date"></div>
+        </div>
+        <div class="fsubrow">
+          <button class="fsub" onclick="saveNISMCert()">Save Certification</button>
+          <span class="ferr" id="nismErr"></span><span class="fok" id="nismOk"></span>
+        </div>
+      </div>
+      <div id="nismTable" style="margin-top:14px"></div>
     </div>
     <div class="dl-row" id="progDlRow" style="display:none">
       <button class="dl-btn" onclick="downloadDashboardExcel()">⬇ Download Trainer Dashboard (Excel)</button>
@@ -484,7 +520,7 @@ let CUR_TRAINER_NAME = '';
 
 // ====== FIREBASE SYNC ======
 const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
-const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits','zh_kra_monthly'];
+const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits','zh_kra_monthly','zh_nism'];
 let _syncTimer = null;
 const _pendingWrites = new Set(); // keys with in-flight Firebase PUTs
 
@@ -807,6 +843,8 @@ function buildDash() {
   document.getElementById('atChart').innerHTML=top.map(([t,h],i)=>`<div class="br"><div class="bl" style="font-size:11px">${t}</div><div class="bt"><div class="bf" style="width:${(h/maxA*100).toFixed(1)}%;background:${acs[i%acs.length]}"></div></div><div class="bv">${h.toFixed(1)}h</div></div>`).join('');
   // Filters
   const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
+  // Hide trainer filter for non-admin (they only see their own data anyway)
+  if(ft) ft.style.display=(CUR_ROLE==='admin')?'':'none';
   if(fm.options.length===1) {
     MONTHS_ORDER.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
     TRAINERS.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
@@ -865,7 +903,8 @@ const KRA_TYPE_MAP = {
   'Varsity Video Shoot':'Process Improvement','Varsity Backend Support':'Process Improvement',
   'Ticket Tool Video':'Process Improvement','Training Need Analysis':'Process Improvement',
   'Self Assessment Form':'Process Improvement','Content Team Session':'Refresher / Up-trainings',
-  'Support Team OJT':'OJT / 0-30-60 Days Performance'
+  'Support Team OJT':'OJT / 0-30-60 Days Performance',
+  'NISM Certification':'Process Improvement'
 };
 const KRA_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
 const KRA_WEIGHTS = {...Object.fromEntries(TR.kra.map(k=>[k.area,k.weight])), 'Behavior & Capabilities':10};
@@ -907,6 +946,7 @@ function buildProgress() {
     renderKRAEditor();
   }
 
+  renderNISMSection();
   // Personal KRA % for trainer view
   const pkWrap=document.getElementById('personalKRAWrap');
   if(pkWrap) {
@@ -1223,6 +1263,108 @@ function saveKRAMonthlyFromUI(){
   const btn = document.querySelector('#kraEditorWrap .kra-save-btn');
   if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent=`💾 Save ${_kraSelMonth} Ratings`;},1500);}
   renderKRAEditor();
+}
+
+// ====== NISM CERTIFICATIONS ======
+function getNISM(){try{return JSON.parse(localStorage.getItem('zh_nism')||'{}');}catch(e){return{};}}
+function saveNISMData(d){gsSet('zh_nism',d);}
+
+function renderNISMSection(){
+  const sec=document.getElementById('nismSection');
+  if(!sec) return;
+  const isGuest=(CUR_ROLE==='guest');
+  if(isGuest){sec.style.display='none';return;}
+  const isAdmin=(CUR_ROLE==='admin');
+  const nism=getNISM();
+  // Admin sees all trainers; trainer sees only their own
+  const trainersToShow=isAdmin?KRA_EDIT_TRAINERS:[CUR_TRAINER_NAME].filter(Boolean);
+  const now=new Date();
+
+  let html='';
+  trainersToShow.forEach(t=>{
+    const certs=(nism[t]||[]);
+    if(!certs.length&&!isAdmin) return;
+    const rows=certs.map((c,i)=>{
+      const exp=c.expiry?new Date(c.expiry):null;
+      let expiryHtml='—';
+      if(exp){
+        const days=Math.round((exp-now)/(1000*60*60*24));
+        const cls=days<0?'nism-expiry-exp':days<90?'nism-expiry-warn':'nism-expiry-ok';
+        const lbl=days<0?`Expired ${Math.abs(days)}d ago`:days<90?`Expires in ${days}d`:`Valid until ${c.expiry}`;
+        expiryHtml=`<span class="${cls}">${lbl}</span>`;
+      }
+      const canDel=isAdmin||t===CUR_TRAINER_NAME;
+      return `<tr>
+        <td>${c.name}</td>
+        <td style="color:var(--tx2)">${c.certNo||'—'}</td>
+        <td style="color:var(--tx2)">${c.issued||'—'}</td>
+        <td>${expiryHtml}</td>
+        ${canDel?`<td><button style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:13px" onclick="delNISMCert('${t}',${i})" title="Delete">✕</button></td>`:'<td></td>'}
+      </tr>`;
+    }).join('');
+    const trainerLabel=isAdmin?`<div style="font-size:11px;font-weight:700;color:${COLORS_T[t]||'var(--ac)'};margin-bottom:4px">${t}</div>`:'';
+    html+=`${trainerLabel}<table class="nism-tbl"><thead><tr><th>Certificate</th><th>Cert Number</th><th>Issued</th><th>Expiry</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="color:var(--tx3);font-size:11px">No certifications logged yet.</td></tr>'}</tbody></table>`;
+    if(isAdmin) html+='<div style="height:10px"></div>';
+  });
+
+  document.getElementById('nismTable').innerHTML=html||'<div style="font-size:12px;color:var(--tx3)">No certifications found.</div>';
+
+  // Hide add form for admin (they don't add certs; trainers do)
+  const fw=document.getElementById('nismFormWrap');
+  if(fw) fw.style.display=isAdmin?'none':'';
+}
+
+function saveNISMCert(){
+  const name=document.getElementById('nismName')?.value||'';
+  const certNo=(document.getElementById('nismCertNo')?.value||'').trim();
+  const issued=document.getElementById('nismIssued')?.value||'';
+  const expiry=document.getElementById('nismExpiry')?.value||'';
+  const err=document.getElementById('nismErr');const ok=document.getElementById('nismOk');
+  err.textContent='';ok.textContent='';
+  if(!certNo){err.textContent='Enter certificate number.';return;}
+  if(!issued){err.textContent='Enter issue date.';return;}
+  if(!expiry){err.textContent='Enter expiry date.';return;}
+
+  const trainer=CUR_TRAINER_NAME;
+  if(!trainer){err.textContent='Trainer name not set.';return;}
+
+  const id=Date.now().toString(36);
+  const nism=getNISM();
+  if(!nism[trainer]) nism[trainer]=[];
+  nism[trainer].push({id,name,certNo,issued,expiry});
+  saveNISMData(nism);
+
+  // Add a log entry → maps to Process Improvement KRA
+  const issuedDate=new Date(issued);
+  const month=issuedDate.toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+  const logs=getLogs();
+  logs.push({month,type:'NISM Certification',details:`${name} — Cert No: ${certNo}`,trainer,session:'Offline',topic:name,hours:0,start:issued,end:expiry,nismId:id});
+  saveLogs(logs);
+
+  ok.textContent=`✓ ${name} saved!`;
+  setTimeout(()=>ok.textContent='',3000);
+  document.getElementById('nismCertNo').value='';
+  document.getElementById('nismIssued').value='';
+  document.getElementById('nismExpiry').value='';
+  renderNISMSection();
+  buildDash();buildProgress();
+}
+
+function delNISMCert(trainer,idx){
+  if(!confirm('Remove this certification?')) return;
+  const nism=getNISM();
+  const certs=nism[trainer]||[];
+  const nismId=certs[idx]?.id;
+  certs.splice(idx,1);
+  if(!certs.length) delete nism[trainer]; else nism[trainer]=certs;
+  saveNISMData(nism);
+  // Remove log entry
+  if(nismId){
+    const logs=getLogs().filter(l=>l.nismId!==nismId);
+    saveLogs(logs);
+    buildDash();buildProgress();
+  }
+  renderNISMSection();
 }
 
 // ====== EXCEL DOWNLOAD ======
