@@ -845,11 +845,9 @@ function buildDash() {
   document.getElementById('atChart').innerHTML=top.map(([t,h],i)=>`<div class="br"><div class="bl" style="font-size:11px">${t}</div><div class="bt"><div class="bf" style="width:${(h/maxA*100).toFixed(1)}%;background:${acs[i%acs.length]}"></div></div><div class="bv">${h.toFixed(1)}h</div></div>`).join('');
   // Filters
   const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
-  // Hide trainer filter for non-admin (they only see their own data anyway)
-  if(ft) ft.style.display=(CUR_ROLE==='admin')?'':'none';
   if(fm.options.length===1) {
     MONTHS_ORDER.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
-    TRAINERS.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
+    ['Freeda Reshma Dsouza','Girish A','Harish Bhat'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
     [...new Set(acts.map(a=>a.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
   }
   renderTable();
