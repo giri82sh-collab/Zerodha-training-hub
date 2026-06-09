@@ -1389,10 +1389,12 @@ function delNISMCert(trainer,idx){
 
 // ====== EXCEL DOWNLOAD ======
 function downloadDashboardExcel() {
-  if(typeof XLSX==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
+  // Use XLSXStyle (supports cell colours) if loaded, fall back to plain XLSX
+  const XL=(typeof XLSXStyle!=='undefined')?XLSXStyle:XLSX;
+  if(typeof XL==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
   const mhrs=getAllMonthlyHours();
   const acts=getAllActs();
-  const wb=XLSX.utils.book_new();
+  const wb=XL.utils.book_new();
 
   // ── Data helpers ──
   const fh=v=>+(+v).toFixed(1);
@@ -1443,10 +1445,10 @@ function downloadDashboardExcel() {
   // Build sheet from rows of {v,s} cells (or raw values)
   function makeSheet(rows){
     const aoa=rows.map(row=>row.map(cell=>cell&&typeof cell==='object'&&'v' in cell?cell.v:cell));
-    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    const ws=XL.utils.aoa_to_sheet(aoa);
     rows.forEach((row,r)=>row.forEach((cell,c)=>{
       if(cell&&typeof cell==='object'&&cell.s){
-        const ref=XLSX.utils.encode_cell({r,c});
+        const ref=XL.utils.encode_cell({r,c});
         if(!ws[ref])ws[ref]={t:'s',v:''};
         ws[ref].s=cell.s;
       }
@@ -1485,7 +1487,7 @@ function downloadDashboardExcel() {
   ];
   const ws0=makeSheet(dsRows);
   ws0['!cols']=[{wch:36},{wch:14},{wch:16}];
-  XLSX.utils.book_append_sheet(wb,ws0,'Dashboard Summary');
+  XL.utils.book_append_sheet(wb,ws0,'Dashboard Summary');
 
   // ── Sheet 2: Monthly Hours Summary ──
   const trHdrS=t=>{const c=TC[t];return c?{...bdr,fill:sf(c.bg),font:fn(c.fg,true,11),...rgt}:ST.hdrR;};
@@ -1499,7 +1501,7 @@ function downloadDashboardExcel() {
   ];
   const ws1=makeSheet(mhsRows);
   ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:18})),{wch:13}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
+  XL.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
 
   // ── Sheet 3: Full Activity Log ──
   const logHdr=[cx('Month',ST.hdr),cx('Date',ST.hdr),cx('Trainer',ST.hdr),cx('Session',ST.hdr),cx('Type',ST.hdr),cx('Details / Batch',ST.hdr),cx('Topic',ST.hdr),cx('Hours',ST.hdrR)];
@@ -1513,7 +1515,7 @@ function downloadDashboardExcel() {
     [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cx(fh(totalHrs),ST.totR)],
   ]);
   ws2['!cols']=[{wch:16},{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Full Activity Log');
+  XL.utils.book_append_sheet(wb,ws2,'Full Activity Log');
 
   // ── Sheet 4+: One per month ──
   const monthsWithActs=[...new Set(acts.map(a=>a.month))].sort((a,b)=>MONTHS_ORDER.indexOf(a)-MONTHS_ORDER.indexOf(b));
@@ -1536,10 +1538,10 @@ function downloadDashboardExcel() {
     ]);
     ws['!cols']=[{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
     const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
-    XLSX.utils.book_append_sheet(wb,ws,shName);
+    XL.utils.book_append_sheet(wb,ws,shName);
   });
 
-  XLSX.writeFile(wb,'Zerodha_Training_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  XL.writeFile(wb,'Zerodha_Training_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
 // ====== MONTHLY PLANNER ======
@@ -1823,7 +1825,7 @@ function delEvt(owner, idx){
   renderCal();
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-<script>if(typeof XLSXStyle!=='undefined')var XLSX=XLSXStyle;</script>
 </body>
 </html>
