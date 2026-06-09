@@ -1394,36 +1394,100 @@ function downloadDashboardExcel() {
   const acts=getAllActs();
   const wb=XLSX.utils.book_new();
 
-  // Sheet 1: Monthly Hours Summary
-  const summaryRows=[['Month',...TRAINERS,'Total']];
+  // ── Helpers ──
+  const fh=v=>+(+v).toFixed(1); // float to 1 decimal as number
+  const sortedActs=[...acts].sort((a,b)=>MONTHS_ORDER.indexOf(a.month)-MONTHS_ORDER.indexOf(b.month));
+  const totalHrs=acts.reduce((s,a)=>s+(a.hours||0),0);
+  const onHrs=acts.filter(a=>a.session==='Online').reduce((s,a)=>s+(a.hours||0),0);
+  const offHrs=acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+(a.hours||0),0);
+  const activeMonths=MONTHS_ORDER.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
+
+  // ── Sheet 1: Dashboard Summary ──
+  const aTypes={};
+  acts.forEach(a=>{if(!aTypes[a.type])aTypes[a.type]={h:0,n:0};aTypes[a.type].h+=(a.hours||0);aTypes[a.type].n++;});
+  const tTotals=TRAINERS.map(t=>[t,fh(acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+(a.hours||0),0))]).sort((a,b)=>b[1]-a[1]);
+
+  const ws0=XLSX.utils.aoa_to_sheet([
+    ['Zerodha Training & Development — Dashboard Summary'],
+    ['Generated: '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})],
+    [],
+    ['KEY METRICS'],
+    ['Metric','Value'],
+    ['Total Activities',acts.length],
+    ['Total Man Hours',fh(totalHrs)],
+    ['Online Hours',fh(onHrs)],
+    ['Offline Hours',fh(offHrs)],
+    ['Active Months',activeMonths.length],
+    [],
+    ['HOURS BY TRAINER — ALL TIME'],
+    ['Trainer','Total Hours'],
+    ...tTotals,
+    [],
+    ['SESSION TYPE BREAKDOWN'],
+    ['Session Type','Hours','% Share'],
+    ['Online',fh(onHrs),totalHrs?fh(onHrs/totalHrs*100):0],
+    ['Offline',fh(offHrs),totalHrs?fh(offHrs/totalHrs*100):0],
+    [],
+    ['TOP ACTIVITY TYPES BY HOURS'],
+    ['Activity Type','Total Hours','No. of Sessions'],
+    ...Object.entries(aTypes).sort((a,b)=>b[1].h-a[1].h).map(([t,d])=>[t,fh(d.h),d.n]),
+  ]);
+  ws0['!cols']=[{wch:36},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws0,'Dashboard Summary');
+
+  // ── Sheet 2: Monthly Hours Summary (Trainer × Month) ──
+  const summaryRows=[['Month',...TRAINERS,'Month Total']];
   MONTHS_ORDER.forEach(m=>{
     if(!mhrs[m]) return;
-    const row=[m,...TRAINERS.map(t=>(mhrs[m][t]||0))];
-    row.push(TRAINERS.reduce((s,t)=>s+(mhrs[m][t]||0),0));
-    summaryRows.push(row);
+    const vals=TRAINERS.map(t=>fh(mhrs[m][t]||0));
+    summaryRows.push([m,...vals,fh(vals.reduce((s,v)=>s+v,0))]);
   });
-  // Totals row
-  const totRow=['TOTAL',...TRAINERS.map(t=>MONTHS_ORDER.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0))];
-  totRow.push(totRow.slice(1).reduce((a,b)=>a+b,0));
+  const totRow=['GRAND TOTAL',...TRAINERS.map(t=>fh(MONTHS_ORDER.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)))];
+  totRow.push(fh(totRow.slice(1).reduce((a,b)=>a+b,0)));
   summaryRows.push(totRow);
   const ws1=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:14})),{wch:10}];
+  ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:16})),{wch:13}];
   XLSX.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
 
-  // Sheet 2+: One sheet per month (Activity Log)
+  // ── Sheet 3: Full Activity Log (all months) ──
+  const logHdr=['Month','Date','Trainer','Session','Type','Details / Batch','Topic','Hours'];
+  const ws2=XLSX.utils.aoa_to_sheet([
+    logHdr,
+    ...sortedActs.map(r=>[
+      r.month||'', r.start||r.date||'—', r.trainer||'',
+      r.session||'', r.type||'',
+      r.details||r.training_details||'', r.topic||'', fh(r.hours||0)
+    ]),
+    [],
+    ['','','','','','','TOTAL',fh(totalHrs)],
+  ]);
+  ws2['!cols']=[{wch:16},{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Full Activity Log');
+
+  // ── Sheet 4+: One sheet per month ──
   const monthsWithActs=[...new Set(acts.map(a=>a.month))].sort((a,b)=>MONTHS_ORDER.indexOf(a)-MONTHS_ORDER.indexOf(b));
   monthsWithActs.forEach(m=>{
-    const rows=acts.filter(a=>a.month===m);
+    const rows=sortedActs.filter(a=>a.month===m);
     if(!rows.length) return;
-    const header=['Month','Type','Details','Trainer','Session','Topic','Hours','Start','End'];
-    const data=[header,...rows.map(r=>[r.month,r.type,r.details,r.trainer,r.session,r.topic,r.hours,r.start||'',r.end||''])];
-    const ws=XLSX.utils.aoa_to_sheet(data);
-    ws['!cols']=[{wch:14},{wch:20},{wch:24},{wch:22},{wch:10},{wch:28},{wch:8},{wch:10},{wch:10}];
+    const mTot=fh(rows.reduce((s,r)=>s+(r.hours||0),0));
+    const ws=XLSX.utils.aoa_to_sheet([
+      [m+' — Activity Log'],
+      [],
+      ['Date','Trainer','Session','Type','Details / Batch','Topic','Hours'],
+      ...rows.map(r=>[
+        r.start||r.date||'—', r.trainer||'',
+        r.session||'', r.type||'',
+        r.details||r.training_details||'', r.topic||'', fh(r.hours||0)
+      ]),
+      [],
+      ['','','','','','TOTAL HOURS →',mTot],
+    ]);
+    ws['!cols']=[{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
     const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
     XLSX.utils.book_append_sheet(wb,ws,shName);
   });
 
-  XLSX.writeFile(wb,'Zerodha_Trainer_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  XLSX.writeFile(wb,'Zerodha_Training_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
 // ====== MONTHLY PLANNER ======
