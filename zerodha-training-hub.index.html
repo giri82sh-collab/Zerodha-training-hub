@@ -859,13 +859,30 @@ function buildDash() {
 }
 function renderTable() {
   const fm=document.getElementById('fmth').value,ft=document.getElementById('ftrn').value,fty=document.getElementById('ftyp').value;
-  let rows=getAllActs();
+  let rows=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
   if(fm!=='all') rows=rows.filter(r=>r.month===fm);
   if(ft!=='all') rows=rows.filter(r=>r.trainer&&r.trainer.includes(ft));
   if(fty!=='all') rows=rows.filter(r=>r.type===fty);
   const minHrsEl=document.getElementById('fMinHrs');
   const minHrs=minHrsEl?parseFloat(minHrsEl.value)||0:0;
   if(minHrs>0) rows=rows.filter(r=>(r.hours||0)>=minHrs);
+
+  // Update main KPI cards to reflect current filter
+  const kpiEl=document.getElementById('kpiRow');
+  if(kpiEl){
+    const fTot=rows.reduce((s,r)=>s+(r.hours||0),0);
+    const fOn=rows.filter(r=>r.session==='Online').reduce((s,r)=>s+(r.hours||0),0);
+    const fOff=rows.filter(r=>r.session==='Offline').reduce((s,r)=>s+(r.hours||0),0);
+    const fMths=[...new Set(rows.map(r=>r.month))].length;
+    const fLbl=fm==='all'?'All Months':fm;
+    kpiEl.innerHTML=[
+      ['Total Activities',rows.length,fLbl,'#00e5c3'],
+      ['Total Man Hours',fTot.toFixed(1),fLbl,'#ff6b35'],
+      ['Online Hours',fOn.toFixed(1),fLbl,'#7c6af7'],
+      ['Offline Hours',fOff.toFixed(1),fLbl,'#f59e0b'],
+      ['Active Months',fMths,'With logged data','#22c55e'],
+    ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
+  }
 
   // Summary strip
   const strip=document.getElementById('logSummaryStrip');
@@ -1393,64 +1410,80 @@ function delNISMCert(trainer,idx){
 
 // ====== EXCEL DOWNLOAD ======
 function downloadDashboardExcel() {
-  // Use XLSXStyle (supports cell colours) if loaded, fall back to plain XLSX
   const XL=(typeof XLSXStyle!=='undefined')?XLSXStyle:XLSX;
   if(typeof XL==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
   const mhrs=getAllMonthlyHours();
-  const acts=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
+  const allActs=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
+  const sortedActs=[...allActs].sort((a,b)=>REPORT_MONTHS.indexOf(a.month)-REPORT_MONTHS.indexOf(b.month));
   const wb=XL.utils.book_new();
 
-  // ── Data helpers ──
-  const fh=v=>+(+v).toFixed(1);
-  const sortedActs=[...acts].sort((a,b)=>REPORT_MONTHS.indexOf(a.month)-REPORT_MONTHS.indexOf(b.month));
-  const totalHrs=acts.reduce((s,a)=>s+(a.hours||0),0);
-  const onHrs=acts.filter(a=>a.session==='Online').reduce((s,a)=>s+(a.hours||0),0);
-  const offHrs=acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+(a.hours||0),0);
-  const activeMonths=REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
-  const aTypes={};acts.forEach(a=>{if(!aTypes[a.type])aTypes[a.type]={h:0,n:0};aTypes[a.type].h+=(a.hours||0);aTypes[a.type].n++;});
-  const tTotals=TRAINERS.map(t=>[t,fh(acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+(a.hours||0),0))]).sort((a,b)=>b[1]-a[1]);
+  // Current dashboard filter → pre-set D6 in Excel
+  const fmthEl=document.getElementById('fmth');
+  const curFilter=fmthEl?fmthEl.value:'all';
+  const selMonth=curFilter==='all'?'All Months':curFilter;
 
-  // ── Style helpers ──
+  // Helpers
+  const fh=v=>+(+v).toFixed(2);
+  const n=sortedActs.length; // used in SUMIFS range
+  const activeDataMonths=REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
+
+  // Style helpers
   const sf=rgb=>({patternType:'solid',fgColor:{rgb}});
   const fn=(rgb,bold,sz)=>{const o={color:{rgb}};if(bold)o.bold=true;if(sz)o.sz=sz;return o;};
-  const rgt={alignment:{horizontal:'right'}};
-  const bdr={border:{top:{style:'thin',color:{rgb:'dddddd'}},bottom:{style:'thin',color:{rgb:'dddddd'}},left:{style:'thin',color:{rgb:'dddddd'}},right:{style:'thin',color:{rgb:'dddddd'}}}};
-  const ST={
-    title:    {fill:sf('0c0d14'),font:fn('00e5c3',true,13)},
-    sub:      {fill:sf('0c0d14'),font:fn('9098b8',false,10)},
-    sec:      {fill:sf('22243a'),font:fn('ff6b35',true,11)},
-    hdr:      {...bdr,fill:sf('1a1b2e'),font:fn('e8eaf6',true,11)},
-    hdrR:     {...bdr,fill:sf('1a1b2e'),font:fn('e8eaf6',true,11),...rgt},
-    r1:       {fill:sf('ffffff'),font:fn('111827')},
-    r1R:      {fill:sf('ffffff'),font:fn('111827'),...rgt},
-    r2:       {fill:sf('f0f0fa'),font:fn('111827')},
-    r2R:      {fill:sf('f0f0fa'),font:fn('111827'),...rgt},
-    tot:      {fill:sf('1a1b2e'),font:fn('00e5c3',true)},
-    totR:     {fill:sf('1a1b2e'),font:fn('ff6b35',true),...rgt},
-    empty:    {fill:sf('0c0d14')},
-    online:   {fill:sf('e0f2fe'),font:fn('075985')},
-    onlineR:  {fill:sf('e0f2fe'),font:fn('075985'),...rgt},
-    offline:  {fill:sf('dcfce7'),font:fn('14532d')},
-    offlineR: {fill:sf('dcfce7'),font:fn('14532d'),...rgt},
-  };
-  // Per-trainer light-tint styles
-  const TC={
-    'Gaurav Kumar':         {bg:'dbeafe',fg:'1e40af'},
-    'Raju Vernekar':        {bg:'ccfbf1',fg:'0f766e'},
-    'Freeda Reshma Dsouza': {bg:'fef3c7',fg:'92400e'},
-    'Harish Bhat':          {bg:'fee2e2',fg:'991b1b'},
-    'Girish A':             {bg:'f3e8ff',fg:'6b21a8'},
-  };
-  const trS=(t,isR)=>{const c=TC[t];return c?{fill:sf(c.bg),font:fn(c.fg),...(isR?rgt:{})}:(isR?ST.r1R:ST.r1);};
-  const rowS=(i,isR)=>i%2===0?(isR?ST.r1R:ST.r1):(isR?ST.r2R:ST.r2);
-  const cx=(v,s)=>({v,s});                        // value cell
-  const ex=s=>({v:'',s});                          // empty styled cell
-  const cf=(formula,cached,s)=>({f:formula,v:cached,s}); // formula cell (cached = pre-calc for display)
+  const ac=(h,v='center')=>({alignment:{horizontal:h,vertical:v,wrapText:false}});
+  const bdr=(rgb='cccccc')=>({border:{top:{style:'thin',color:{rgb}},bottom:{style:'thin',color:{rgb}},left:{style:'thin',color:{rgb}},right:{style:'thin',color:{rgb}}}});
 
-  // Column letter helper (0-indexed): 0→A, 1→B, 5→F …
-  const CL=c=>{let s='',n=c+1;while(n>0){s=String.fromCharCode(64+(n-1)%26+1)+s;n=Math.floor((n-1)/26);}return s;};
+  // Color palette matching the template
+  const C={
+    darkBg:'1e2130', darkerBg:'12141e', surface:'22243a',
+    teal:'00e5c3', orange:'ff6b35', purple:'7c6af7', yellow:'f59e0b',
+    light:'e8eaf6', dim:'9098b8', white:'ffffff',
+    blue:'3b82f6', green:'22c55e', red:'ef4444',
+  };
 
-  // Build sheet from rows of {v,s}, {f,v,s}, or raw values
+  // Core styles
+  const S={
+    title:   {fill:sf(C.darkerBg),font:fn(C.teal,true,13),...ac('left')},
+    sub:     {fill:sf(C.darkerBg),font:fn(C.dim,false,9),...ac('left')},
+    filtLbl: {...bdr(),fill:sf(C.surface),font:fn(C.light,true,10),...ac('center')},
+    filtVal: {...bdr(),fill:sf(C.darkerBg),font:fn(C.orange,true,13),...ac('center')},
+    note:    {fill:sf('fffde7'),font:fn('92400e',false,9),...ac('left')},
+    kpiHdr:  {fill:sf(C.darkBg),font:fn(C.dim,true,9),...ac('center')},
+    kpiVal:  (clr)=>({fill:sf(C.darkerBg),font:fn(clr,true,18),...ac('center')}),
+    kpiSub:  {fill:sf(C.darkerBg),font:fn(C.dim,false,9),...ac('center')},
+    trHdr:   (bg,fg)=>({fill:sf(bg),font:fn(fg,true,10),...ac('center'),...bdr()}),
+    trVal:   (bg,fg)=>({fill:sf(bg),font:fn(fg,true,16),...ac('center')}),
+    trSub:   (bg,fg)=>({fill:sf(bg),font:fn(fg,false,9),...ac('center')}),
+    secHdr:  {...bdr(),fill:sf(C.surface),font:fn(C.orange,true,11),...ac('left')},
+    tblHdr:  {...bdr(),fill:sf(C.darkBg),font:fn(C.light,true,10),...ac('center')},
+    tblHdrR: {...bdr(),fill:sf(C.darkBg),font:fn(C.light,true,10),...ac('right')},
+    odd:     {...bdr('eeeeee'),fill:sf(C.white),font:fn('111827',false,10),...ac('left')},
+    oddR:    {...bdr('eeeeee'),fill:sf(C.white),font:fn('111827',false,10),...ac('right')},
+    even:    {...bdr('eeeeee'),fill:sf('f0f0fa'),font:fn('111827',false,10),...ac('left')},
+    evenR:   {...bdr('eeeeee'),fill:sf('f0f0fa'),font:fn('111827',false,10),...ac('right')},
+    totLbl:  {...bdr(),fill:sf(C.surface),font:fn(C.teal,true,10),...ac('left')},
+    totVal:  {...bdr(),fill:sf(C.surface),font:fn(C.orange,true,10),...ac('right')},
+    empty:   {fill:sf(C.darkerBg)},
+    online:  {...bdr('bbdefb'),fill:sf('e3f2fd'),font:fn('0d47a1',false,10)},
+    onlineR: {...bdr('bbdefb'),fill:sf('e3f2fd'),font:fn('0d47a1',false,10),...ac('right')},
+    offline: {...bdr('c8e6c9'),fill:sf('e8f5e9'),font:fn('1b5e20',false,10)},
+    offlineR:{...bdr('c8e6c9'),fill:sf('e8f5e9'),font:fn('1b5e20',false,10),...ac('right')},
+  };
+
+  // Per-trainer palette (matching dashboard colours)
+  const TR_P={
+    'Gaurav Kumar':         {bg:'1e40af',fg:C.white,light:'dbeafe',lfg:'1e40af'},
+    'Raju Vernekar':        {bg:'0f766e',fg:C.white,light:'ccfbf1',lfg:'0f766e'},
+    'Freeda Reshma Dsouza': {bg:'92400e',fg:C.white,light:'fef3c7',lfg:'92400e'},
+    'Harish Bhat':          {bg:'991b1b',fg:C.white,light:'fee2e2',lfg:'991b1b'},
+    'Girish A':             {bg:'6b21a8',fg:C.white,light:'f3e8ff',lfg:'6b21a8'},
+  };
+  const cx=(v,s)=>({v,s});
+  const ex=s=>({v:'',s});
+  const cf=(f,v,s)=>({f,v,s});
+  const CL=c=>{let s='',nn=c+1;while(nn>0){s=String.fromCharCode(64+(nn-1)%26+1)+s;nn=Math.floor((nn-1)/26);}return s;};
+  const E=ex(S.empty);
+
   function makeSheet(rows){
     const aoa=rows.map(row=>row.map(cell=>cell&&typeof cell==='object'&&'v' in cell?cell.v:cell));
     const ws=XL.utils.aoa_to_sheet(aoa);
@@ -1458,110 +1491,220 @@ function downloadDashboardExcel() {
       if(cell&&typeof cell==='object'&&(cell.s||cell.f)){
         const ref=XL.utils.encode_cell({r,c});
         if(!ws[ref])ws[ref]={t:'n',v:0};
-        if(cell.s) ws[ref].s=cell.s;
+        if(cell.s)ws[ref].s=cell.s;
         if(cell.f){ws[ref].f=cell.f;ws[ref].t='n';if(typeof cell.v==='number')ws[ref].v=cell.v;}
       }
     }));
     return ws;
   }
 
-  // Pre-compute row counts needed for formula addresses
-  const numLogRows=sortedActs.length;
-  const numDataMonths=REPORT_MONTHS.filter(m=>mhrs[m]).length;
+  // ── Formula helpers ──
+  // Data sheet column refs (all activities, n rows)
+  const DA=`Data!A2:A${n+1}`,DF=`Data!F2:F${n+1}`,DG=`Data!G2:G${n+1}`,DI=`Data!I2:I${n+1}`;
+  // Filter-aware formula: "All Months" = all data, else SUMIFS by D6
+  const fif=(allF,filtF)=>`=IF($D$6="All Months",${allF},${filtF})`;
+  const trF=(first)=>fif(`SUMIF(${DF},"*${first}*",${DI})`,`SUMIFS(${DI},${DA},$D$6,${DF},"*${first}*")`);
+  const mtrF=(m,first)=>`=SUMIFS(${DI},${DA},"${m}",${DF},"*${first}*")`;
 
-  // ── Sheet 1: Dashboard Summary ──
-  const emptyRow=[ex(ST.empty),ex(ST.empty),ex(ST.empty)];
-  const dsRows=[
-    [cx('Zerodha Training & Development — Dashboard Summary',ST.title),ex(ST.title),ex(ST.title)],
-    [cx('Generated: '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),ST.sub),ex(ST.sub),ex(ST.sub)],
-    emptyRow,
-    [cx('KEY METRICS',ST.sec),ex(ST.sec),ex(ST.sec)],
-    [cx('Metric',ST.hdr),cx('Value',ST.hdrR),ex(ST.hdr)],
-    [cx('Total Activities',ST.r1),cf(`=COUNT('Full Activity Log'!H2:H${numLogRows+1})`,acts.length,ST.r1R),ex(ST.r1)],
-    [cx('Total Man Hours',ST.r2),cf(`=SUM('Full Activity Log'!H2:H${numLogRows+1})`,fh(totalHrs),ST.r2R),ex(ST.r2)],
-    [cx('Online Hours',ST.r1),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Online",'Full Activity Log'!H2:H${numLogRows+1})`,fh(onHrs),ST.r1R),ex(ST.r1)],
-    [cx('Offline Hours',ST.r2),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Offline",'Full Activity Log'!H2:H${numLogRows+1})`,fh(offHrs),ST.r2R),ex(ST.r2)],
-    [cx('Active Months',ST.r1),cx(activeMonths.length,ST.r1R),ex(ST.r1)],
-    emptyRow,
-    [cx('HOURS BY TRAINER — ALL TIME',ST.sec),ex(ST.sec),ex(ST.sec)],
-    [cx('Trainer',ST.hdr),cx('Total Hours',ST.hdrR),ex(ST.hdr)],
-    ...tTotals.map(([t,h])=>[cx(t,trS(t,false)),cx(h,trS(t,true)),ex(trS(t,false))]),
-    emptyRow,
-    [cx('SESSION TYPE BREAKDOWN',ST.sec),ex(ST.sec),ex(ST.sec)],
-    [cx('Session Type',ST.hdr),cx('Hours',ST.hdrR),cx('% Share',ST.hdrR)],
-    // Online row = Excel row (17 + tTotals.length); Offline = (18 + tTotals.length); TotalManHours = B7
-    [cx('Online',ST.online),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Online",'Full Activity Log'!H2:H${numLogRows+1})`,fh(onHrs),ST.onlineR),cf(`=IFERROR(B${17+tTotals.length}/B7*100,0)`,totalHrs?fh(onHrs/totalHrs*100):0,ST.onlineR)],
-    [cx('Offline',ST.offline),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Offline",'Full Activity Log'!H2:H${numLogRows+1})`,fh(offHrs),ST.offlineR),cf(`=IFERROR(B${18+tTotals.length}/B7*100,0)`,totalHrs?fh(offHrs/totalHrs*100):0,ST.offlineR)],
-    emptyRow,
-    [cx('TOP ACTIVITY TYPES BY HOURS',ST.sec),ex(ST.sec),ex(ST.sec)],
-    [cx('Activity Type',ST.hdr),cx('Total Hours',ST.hdrR),cx('No. of Sessions',ST.hdrR)],
-    ...Object.entries(aTypes).sort((a,b)=>b[1].h-a[1].h).map(([t,d],i)=>[
-      cx(t,rowS(i)),cx(fh(d.h),rowS(i,true)),cx(d.n,rowS(i,true))
-    ]),
+  // Pre-calculate cached values for current filter
+  const fActs=curFilter==='all'?allActs:allActs.filter(a=>a.month===curFilter);
+  const cTot=fActs.length,cHrs=fh(fActs.reduce((s,a)=>s+(a.hours||0),0));
+  const cOn=fh(fActs.filter(a=>a.session==='Online').reduce((s,a)=>s+(a.hours||0),0));
+  const cOff=fh(fActs.filter(a=>a.session==='Offline').reduce((s,a)=>s+(a.hours||0),0));
+  const cTr=t=>fh(fActs.filter(a=>a.trainer&&a.trainer.includes(t.split(' ')[0])).reduce((s,a)=>s+(a.hours||0),0));
+
+  // ══════════════════════════════════════════
+  // SHEET 1 — DATA (raw log, template 'Data')
+  // ══════════════════════════════════════════
+  const dataHdr=[
+    cx('Month',S.tblHdr),cx('Type of Training',S.tblHdr),cx('Training Details',S.tblHdr),
+    cx('Start Date',S.tblHdr),cx('Date of Completion',S.tblHdr),cx('Trainer Name',S.tblHdr),
+    cx('Session Type',S.tblHdr),cx('Topic Covered',S.tblHdr),cx('Total Man Hours',S.tblHdrR),
   ];
-  const ws0=makeSheet(dsRows);
-  ws0['!cols']=[{wch:36},{wch:14},{wch:16}];
-  XL.utils.book_append_sheet(wb,ws0,'Dashboard Summary');
-
-  // ── Sheet 2: Monthly Hours Summary ──
-  const trHdrS=t=>{const c=TC[t];return c?{...bdr,fill:sf(c.bg),font:fn(c.fg,true,11),...rgt}:ST.hdrR;};
-  // Col layout: A=Month, B..F=Trainers (5 cols), G=Month Total
-  const trLastCol=CL(TRAINERS.length);   // 'F' for 5 trainers
-  const mTotCol=CL(TRAINERS.length+1);   // 'G'
-  const mhsRows=[
-    [cx('Month',ST.hdr),...TRAINERS.map(t=>cx(t,trHdrS(t))),cx('Month Total',ST.hdrR)],
-    ...REPORT_MONTHS.filter(m=>mhrs[m]).map((m,i)=>{
-      const exR=i+2; // Excel row (header=1, data starts at 2)
-      const vals=TRAINERS.map(t=>fh(mhrs[m][t]||0));
-      return [cx(m,rowS(i)),...TRAINERS.map((t,j)=>cx(vals[j],trS(t,true))),cf(`=SUM(B${exR}:${trLastCol}${exR})`,fh(vals.reduce((s,v)=>s+v,0)),rowS(i,true))];
+  const wsData=makeSheet([
+    dataHdr,
+    ...sortedActs.map((r,i)=>{
+      const isOn=r.session==='Online',b=isOn?S.online:S.offline,bR=isOn?S.onlineR:S.offlineR;
+      return [cx(r.month||'',b),cx(r.type||'',b),cx(r.details||r.training_details||'',b),
+        cx(r.start||r.date||'',b),cx(r.end||'',b),cx(r.trainer||'',b),
+        cx(r.session||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
     }),
-    [cx('GRAND TOTAL',ST.tot),
-      ...TRAINERS.map((t,j)=>cf(`=SUM(${CL(j+1)}2:${CL(j+1)}${numDataMonths+1})`,fh(REPORT_MONTHS.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)),ST.totR)),
-      cf(`=SUM(${mTotCol}2:${mTotCol}${numDataMonths+1})`,fh(REPORT_MONTHS.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),ST.totR),
-    ],
-  ];
-  const ws1=makeSheet(mhsRows);
-  ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:18})),{wch:13}];
-  XL.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
-
-  // ── Sheet 3: Full Activity Log ──
-  const logHdr=[cx('Month',ST.hdr),cx('Date',ST.hdr),cx('Trainer',ST.hdr),cx('Session',ST.hdr),cx('Type',ST.hdr),cx('Details / Batch',ST.hdr),cx('Topic',ST.hdr),cx('Hours',ST.hdrR)];
-  const ws2=makeSheet([
-    logHdr,
-    ...sortedActs.map(r=>{
-      const isOn=r.session==='Online';
-      const b=isOn?ST.online:ST.offline;const bR=isOn?ST.onlineR:ST.offlineR;
-      return [cx(r.month||'',b),cx(r.start||r.date||'—',b),cx(r.trainer||'',b),cx(r.session||'',b),cx(r.type||'',b),cx(r.details||r.training_details||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
-    }),
-    [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cf(`=SUM(H2:H${numLogRows+1})`,fh(totalHrs),ST.totR)],
   ]);
-  ws2['!cols']=[{wch:16},{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
-  XL.utils.book_append_sheet(wb,ws2,'Full Activity Log');
+  wsData['!cols']=[{wch:16},{wch:22},{wch:30},{wch:12},{wch:12},{wch:28},{wch:10},{wch:32},{wch:12}];
+  XL.utils.book_append_sheet(wb,wsData,'Data');
 
-  // ── Sheet 4+: One per month ──
-  const monthsWithActs=[...new Set(acts.map(a=>a.month))].sort((a,b)=>MONTHS_ORDER.indexOf(a)-MONTHS_ORDER.indexOf(b));
+  // ══════════════════════════════════════════
+  // SHEET 2 — DASHBOARD (template 'Dashboard')
+  // ══════════════════════════════════════════
+  // Column layout (15 cols A–O): A=spacer, B:C merged, D:E merged … N:O merged
+  //   idx: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14
+  //   col: A  B  C  D  E  F  G  H  I  J  K  L  M  N  O
+
+  // Monthly summary table: rows 19..19+activeDataMonths.length-1 (Excel, 1-based)
+  const mSumStart=19;
+  const mSumEnd=mSumStart+activeDataMonths.length-1;
+
+  const mSumRows=activeDataMonths.map((m,i)=>{
+    const p=TR_P;
+    const rs=i%2===0?S.odd:S.even,rsR=i%2===0?S.oddR:S.evenR;
+    const gTotF=`=SUM(D${mSumStart+i}:N${mSumStart+i})`; // sums every-other col D,F,H,J,L = all trainer cols in that row
+    return [E,
+      cx(m,rs),E,
+      cf(mtrF(m,'Gaurav'),  fh(mhrs[m]?.['Gaurav Kumar']||0),        {fill:sf(p['Gaurav Kumar'].light),font:fn(p['Gaurav Kumar'].lfg,false,10),...ac('right'),...bdr('eeeeee')}),E,
+      cf(mtrF(m,'Raju'),    fh(mhrs[m]?.['Raju Vernekar']||0),       {fill:sf(p['Raju Vernekar'].light),font:fn(p['Raju Vernekar'].lfg,false,10),...ac('right'),...bdr('eeeeee')}),E,
+      cf(mtrF(m,'Freeda'),  fh(mhrs[m]?.['Freeda Reshma Dsouza']||0),{fill:sf(p['Freeda Reshma Dsouza'].light),font:fn(p['Freeda Reshma Dsouza'].lfg,false,10),...ac('right'),...bdr('eeeeee')}),E,
+      cf(mtrF(m,'Harish'),  fh(mhrs[m]?.['Harish Bhat']||0),         {fill:sf(p['Harish Bhat'].light),font:fn(p['Harish Bhat'].lfg,false,10),...ac('right'),...bdr('eeeeee')}),E,
+      cf(mtrF(m,'Girish'),  fh(mhrs[m]?.['Girish A']||0),            {fill:sf(p['Girish A'].light),font:fn(p['Girish A'].lfg,false,10),...ac('right'),...bdr('eeeeee')}),E,
+      cf(gTotF,fh(Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0)),S.totVal),
+    ];
+  });
+
+  const dashRows=[
+    // Row 1: empty
+    Array(15).fill(E),
+    // Row 2: Main title
+    [E,cx('ZERODHA  ·  TRAINING & DEVELOPMENT TRACKER',S.title),...Array(13).fill(ex(S.title))],
+    // Row 3: Subtitle
+    [E,cx(`Training Activity Dashboard   |   ${REPORT_MONTHS[0]} – ${REPORT_END}`,S.sub),...Array(13).fill(ex(S.sub))],
+    // Row 4: Team names
+    [E,cx('Freeda Reshma Dsouza  ·  Gaurav Kumar  ·  Girish A  ·  Harish Bhat  ·  Raju Vernekar',S.sub),...Array(13).fill(ex(S.sub))],
+    // Row 5: empty
+    Array(15).fill(E),
+    // Row 6: Filter (D6 = selectedMonth — change this in Excel to filter all KPI cards)
+    [E,cx('FILTER BY MONTH',S.filtLbl),ex(S.filtLbl),cx(selMonth,S.filtVal),ex(S.filtVal),
+      cx('← Type a month (e.g. "May 2026") or "All Months" in cell D6 to filter KPI cards',S.note),...Array(9).fill(ex(S.note))],
+    // Row 7: empty
+    Array(15).fill(E),
+    // Row 8: KPI headers
+    [E,cx('TOTAL ACTIVITIES',S.kpiHdr),ex(S.kpiHdr),cx('TOTAL MAN HOURS',{...S.kpiHdr,font:fn(C.orange,true,9)}),ex(S.kpiHdr),
+      cx('ONLINE HOURS',{...S.kpiHdr,font:fn(C.purple,true,9)}),ex(S.kpiHdr),
+      cx('OFFLINE HOURS',{...S.kpiHdr,font:fn(C.yellow,true,9)}),ex(S.kpiHdr),
+      ...Array(6).fill(E)],
+    // Row 9: KPI values (SUMIFS formulas referencing D6)
+    [E,
+      cf(fif(`COUNTA(${DA})`,`COUNTIFS(${DA},$D$6)`),cTot,S.kpiVal(C.teal)),ex(S.kpiVal(C.teal)),
+      cf(fif(`SUM(${DI})`,`SUMIFS(${DI},${DA},$D$6)`),cHrs,S.kpiVal(C.orange)),ex(S.kpiVal(C.orange)),
+      cf(fif(`SUMIF(${DG},"Online",${DI})`,`SUMIFS(${DI},${DA},$D$6,${DG},"Online")`),cOn,S.kpiVal(C.purple)),ex(S.kpiVal(C.purple)),
+      cf(fif(`SUMIF(${DG},"Offline",${DI})`,`SUMIFS(${DI},${DA},$D$6,${DG},"Offline")`),cOff,S.kpiVal(C.yellow)),ex(S.kpiVal(C.yellow)),
+      ...Array(6).fill(E)],
+    // Row 10: KPI subtitles
+    [E,cx('sessions recorded',S.kpiSub),ex(S.kpiSub),cx('combined hours',S.kpiSub),ex(S.kpiSub),
+      cx('virtual sessions',S.kpiSub),ex(S.kpiSub),cx('in-person sessions',S.kpiSub),ex(S.kpiSub),
+      ...Array(6).fill(E)],
+    // Row 11: empty
+    Array(15).fill(E),
+    // Row 12: Trainer headers
+    [E,...['Gaurav Kumar','Raju Vernekar','Freeda Reshma Dsouza','Harish Bhat','Girish A'].flatMap(t=>[
+      cx(t.split(' ')[0].toUpperCase()+' '+t.split(' ').slice(1).join(' ').toUpperCase(),S.trHdr(TR_P[t].bg,TR_P[t].fg)),
+      ex(S.trHdr(TR_P[t].bg,TR_P[t].fg))
+    ]),...Array(4).fill(E)],
+    // Row 13: Trainer hour values
+    [E,...['Gaurav Kumar','Raju Vernekar','Freeda Reshma Dsouza','Harish Bhat','Girish A'].flatMap(t=>[
+      cf(trF(t.split(' ')[0]),cTr(t),S.trVal(TR_P[t].light,TR_P[t].lfg)),
+      ex(S.trVal(TR_P[t].light,TR_P[t].lfg))
+    ]),...Array(4).fill(E)],
+    // Row 14: "hours trained"
+    [E,...['Gaurav Kumar','Raju Vernekar','Freeda Reshma Dsouza','Harish Bhat','Girish A'].flatMap(t=>[
+      cx('hours trained',S.trSub(TR_P[t].light,TR_P[t].lfg)),
+      ex(S.trSub(TR_P[t].light,TR_P[t].lfg))
+    ]),...Array(4).fill(E)],
+    // Row 15-16: empty
+    Array(15).fill(E),Array(15).fill(E),
+    // Row 17: Monthly summary section header
+    [E,cx('MONTHLY HOURS SUMMARY',S.secHdr),...Array(13).fill(ex(S.secHdr))],
+    // Row 18: Monthly table column headers
+    [E,cx('Month',S.tblHdr),ex(S.tblHdr),
+      cx('Gaurav Kumar',S.trHdr(TR_P['Gaurav Kumar'].bg,TR_P['Gaurav Kumar'].fg)),ex(S.tblHdr),
+      cx('Raju Vernekar',S.trHdr(TR_P['Raju Vernekar'].bg,TR_P['Raju Vernekar'].fg)),ex(S.tblHdr),
+      cx('Freeda Reshma D.',S.trHdr(TR_P['Freeda Reshma Dsouza'].bg,TR_P['Freeda Reshma Dsouza'].fg)),ex(S.tblHdr),
+      cx('Harish Bhat',S.trHdr(TR_P['Harish Bhat'].bg,TR_P['Harish Bhat'].fg)),ex(S.tblHdr),
+      cx('Girish A',S.trHdr(TR_P['Girish A'].bg,TR_P['Girish A'].fg)),ex(S.tblHdr),
+      cx('Grand Total',S.tblHdrR),ex(S.tblHdrR)],
+    // Rows 19+: Monthly data
+    ...mSumRows,
+    // Grand Total row
+    [E,cx('GRAND TOTAL',S.totLbl),ex(S.totLbl),
+      cf(`=SUM(D${mSumStart}:D${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+(mhrs[m]?.['Gaurav Kumar']||0),0)),S.totVal),ex(S.totVal),
+      cf(`=SUM(F${mSumStart}:F${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+(mhrs[m]?.['Raju Vernekar']||0),0)),S.totVal),ex(S.totVal),
+      cf(`=SUM(H${mSumStart}:H${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+(mhrs[m]?.['Freeda Reshma Dsouza']||0),0)),S.totVal),ex(S.totVal),
+      cf(`=SUM(J${mSumStart}:J${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+(mhrs[m]?.['Harish Bhat']||0),0)),S.totVal),ex(S.totVal),
+      cf(`=SUM(L${mSumStart}:L${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+(mhrs[m]?.['Girish A']||0),0)),S.totVal),ex(S.totVal),
+      cf(`=SUM(N${mSumStart}:N${mSumEnd})`,fh(activeDataMonths.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),S.totVal),ex(S.totVal)],
+  ];
+
+  const wsDash=makeSheet(dashRows);
+
+  // Merged cells for Dashboard
+  const mg=[];
+  const merge=(r1,c1,r2,c2)=>mg.push({s:{r:r1,c:c1},e:{r:r2,c:c2}});
+  // Title rows (index 1,2,3 = Excel rows 2,3,4)
+  [1,2,3].forEach(r=>merge(r,1,r,14));
+  // Filter row (index 5)
+  merge(5,1,5,2);merge(5,3,5,4);merge(5,5,5,14);
+  // KPI rows (index 7,8,9)
+  [[1,2],[3,4],[5,6],[7,8]].forEach(([c1,c2])=>{[7,8,9].forEach(r=>merge(r,c1,r,c2));});
+  // Trainer rows (index 11,12,13)
+  [[1,2],[3,4],[5,6],[7,8],[9,10]].forEach(([c1,c2])=>{[11,12,13].forEach(r=>merge(r,c1,r,c2));});
+  // Sec header (16) + table hdr (17)
+  merge(16,1,16,14);
+  [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12],[13,14]].forEach(([c1,c2])=>merge(17,c1,17,c2));
+  // Monthly data rows
+  activeDataMonths.forEach((_,i)=>{
+    const r=18+i;
+    [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12],[13,14]].forEach(([c1,c2])=>merge(r,c1,r,c2));
+  });
+  // Grand Total row
+  const gtr=18+activeDataMonths.length;
+  [[1,2],[3,4],[5,6],[7,8],[9,10],[11,12],[13,14]].forEach(([c1,c2])=>merge(gtr,c1,gtr,c2));
+  wsDash['!merges']=mg;
+  wsDash['!cols']=[
+    {wch:2},{wch:18},{wch:2},{wch:14},{wch:2},{wch:14},{wch:2},{wch:14},{wch:2},
+    {wch:14},{wch:2},{wch:14},{wch:2},{wch:14},{wch:2},
+  ];
+  wsDash['!rows']=[
+    {hpt:8},{hpt:30},{hpt:16},{hpt:16},{hpt:8},{hpt:32},{hpt:8},
+    {hpt:20},{hpt:50},{hpt:18},{hpt:8},
+    {hpt:26},{hpt:50},{hpt:18},
+    {hpt:8},{hpt:8},{hpt:28},{hpt:26},
+    ...activeDataMonths.map(()=>({hpt:22})),{hpt:26},
+  ];
+  XL.utils.book_append_sheet(wb,wsDash,'Dashboard');
+
+  // ══════════════════════════════════════════
+  // SHEET 3+: PER-MONTH (template month tabs)
+  // ══════════════════════════════════════════
+  const monthsWithActs=[...new Set(allActs.map(a=>a.month))].sort((a,b)=>REPORT_MONTHS.indexOf(a)-REPORT_MONTHS.indexOf(b));
   monthsWithActs.forEach(m=>{
     const rows=sortedActs.filter(a=>a.month===m);
     if(!rows.length)return;
     const mTot=fh(rows.reduce((s,r)=>s+(r.hours||0),0));
-    const mEmpty=[ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty)];
-    const mHdr=[cx('Date',ST.hdr),cx('Trainer',ST.hdr),cx('Session',ST.hdr),cx('Type',ST.hdr),cx('Details / Batch',ST.hdr),cx('Topic',ST.hdr),cx('Hours',ST.hdrR)];
-    // Data in col G (index 6), starting at Excel row 4 (title=1,empty=2,header=3,data from 4)
-    const mDataEndRow=rows.length+3; // last data row in Excel (1-indexed)
-    const ws=makeSheet([
-      [cx(m+' — Activity Log',ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title)],
-      mEmpty,mHdr,
-      ...rows.map(r=>{
-        const isOn=r.session==='Online';
-        const b=isOn?ST.online:ST.offline;const bR=isOn?ST.onlineR:ST.offlineR;
-        return [cx(r.start||r.date||'—',b),cx(r.trainer||'',b),cx(r.session||'',b),cx(r.type||'',b),cx(r.details||r.training_details||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
+    // Structure: row1=empty, row2=title, row3=subtitle, row4=nav note, row5=empty, row6=headers, rows7+=data, lastRow=total
+    const dataEndExcel=6+rows.length; // last data row in Excel (1-indexed)
+    const mHdr=[
+      cx('#',{...S.tblHdr,...ac('center')}),cx('Type of Training',S.tblHdr),cx('Training Details',S.tblHdr),
+      cx('Start Date',S.tblHdr),cx('Completed',S.tblHdr),cx('Trainer Name',S.tblHdr),
+      cx('Session',S.tblHdr),cx('Topic Covered',S.tblHdr),cx('Man Hours',S.tblHdrR),
+    ];
+    const mWs=makeSheet([
+      [ex(S.empty)],
+      [cx(m.toUpperCase()+'  —  TRAINING LOG',S.title)],
+      [cx('Zerodha Training & Development  ·  All activities for '+m,S.sub)],
+      [cx('← Use the sheet tabs at the bottom to navigate to a different month',{...S.sub,font:fn(C.dim,false,9)})],
+      [ex(S.empty)],
+      mHdr,
+      ...rows.map((r,i)=>{
+        const isOn=r.session==='Online',b=isOn?S.online:S.offline,bR=isOn?S.onlineR:S.offlineR;
+        return [cx(i+1,{...S.odd,...ac('center')}),cx(r.type||'',b),cx(r.details||r.training_details||'',b),
+          cx(r.start||r.date||'',b),cx(r.end||'',b),cx(r.trainer||'',b),
+          cx(r.session||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
       }),
-      mEmpty,
-      [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cf(`=SUM(G4:G${mDataEndRow})`,mTot,ST.totR)],
+      [cx('TOTAL MAN HOURS THIS MONTH',{...S.totLbl,font:fn(C.teal,true,10)}),...Array(7).fill(ex(S.empty)),
+        cf(`=SUM(I7:I${dataEndExcel})`,mTot,S.totVal)],
     ]);
-    ws['!cols']=[{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
+    mWs['!cols']=[{wch:4},{wch:22},{wch:30},{wch:12},{wch:12},{wch:28},{wch:10},{wch:32},{wch:12}];
+    mWs['!merges']=[{s:{r:6+rows.length,c:0},e:{r:6+rows.length,c:7}}];
     const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
-    XL.utils.book_append_sheet(wb,ws,shName);
+    XL.utils.book_append_sheet(wb,mWs,shName);
   });
 
   XL.writeFile(wb,'Zerodha_Training_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
