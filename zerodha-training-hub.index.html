@@ -1696,9 +1696,7 @@ function downloadDashboardExcelInternal() {
 }
 
 function downloadDashboardExcel() {
-  const relativeReportPath = (window.location.pathname.indexOf('/Zerodha-training-hub/') !== -1 || window.location.pathname.indexOf('\\Zerodha-training-hub\\') !== -1)
-    ? '../Zerodha_Training_Dashboard.xlsx'
-    : './Zerodha_Training_Dashboard.xlsx';
+  const relativeReportPath = './Zerodha_Training_Dashboard.xlsx';
 
   let modal = document.getElementById('excel-download-modal');
   if (!modal) {

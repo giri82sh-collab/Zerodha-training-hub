@@ -503,6 +503,14 @@ for month_name in MONTHS_ORDER:
 # ── Save ────────────────────────────────────────────────────────────────────────
 wb.save(OUT_PATH)
 print(f"\n✅  Saved: {OUT_PATH}")
+
+# Save a sibling copy inside the project folder for local HTTP server downloads
+ALT_OUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Zerodha_Training_Dashboard.xlsx")
+try:
+    wb.save(ALT_OUT_PATH)
+    print(f"✅  Saved local server copy: {ALT_OUT_PATH}")
+except Exception as e:
+    print(f"⚠️  Could not save copy to project folder: {e}")
 print(f"   Sheets: Dashboard, CD, Data, and monthly sheets.")
 print(f"\nTo use the filter: open the file → Dashboard tab → change cell D6 to a month name")
 print("(e.g. 'May 2026') — all KPI cards and charts update automatically.")
