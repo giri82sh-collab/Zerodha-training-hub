@@ -39,6 +39,25 @@ def get_data_hash():
         log_msg(f"Error checking Firebase: {e}")
         return None
 
+def push_to_github():
+    cwd = os.path.dirname(SCRIPT_PATH)
+    try:
+        # Check if Zerodha_Training_Dashboard.xlsx has changes
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "Zerodha_Training_Dashboard.xlsx"],
+            cwd=cwd, capture_output=True, text=True
+        )
+        if status.stdout.strip():
+            log_msg("Local changes detected in Excel sheet. Pushing to GitHub Pages...")
+            subprocess.run(["git", "add", "Zerodha_Training_Dashboard.xlsx"], cwd=cwd, check=True)
+            subprocess.run(["git", "commit", "-m", "Auto-update Excel report [skip ci]"], cwd=cwd, check=True)
+            subprocess.run(["git", "push"], cwd=cwd, check=True)
+            log_msg("Excel sheet successfully pushed and updated on GitHub Pages.")
+        else:
+            log_msg("Excel sheet matches GitHub copy, no push needed.")
+    except Exception as e:
+        log_msg(f"Failed to push to GitHub: {e}")
+
 def main():
     log_msg("Watcher service started. Monitoring Firebase...")
     last_hash = get_data_hash()
@@ -49,6 +68,7 @@ def main():
         try:
             subprocess.run(["python3", SCRIPT_PATH], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             log_msg("Excel sheet updated.")
+            push_to_github()
         except Exception as e:
             log_msg(f"Initial regeneration failed: {e}")
 
@@ -71,6 +91,7 @@ def main():
                     for line in res.stdout.splitlines():
                         if "Saved" in line or "Sheets" in line:
                             log_msg(f"Generator output: {line.strip()}")
+                    push_to_github()
                 except subprocess.CalledProcessError as e:
                     log_msg(f"Failed to run generator: {e.stderr.strip() if e.stderr else e}")
                 except Exception as e:
