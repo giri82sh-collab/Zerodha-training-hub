@@ -1443,22 +1443,31 @@ function downloadDashboardExcel() {
   };
   const trS=(t,isR)=>{const c=TC[t];return c?{fill:sf(c.bg),font:fn(c.fg),...(isR?rgt:{})}:(isR?ST.r1R:ST.r1);};
   const rowS=(i,isR)=>i%2===0?(isR?ST.r1R:ST.r1):(isR?ST.r2R:ST.r2);
-  const cx=(v,s)=>({v,s});
-  const ex=s=>({v:'',s});
+  const cx=(v,s)=>({v,s});                        // value cell
+  const ex=s=>({v:'',s});                          // empty styled cell
+  const cf=(formula,cached,s)=>({f:formula,v:cached,s}); // formula cell (cached = pre-calc for display)
 
-  // Build sheet from rows of {v,s} cells (or raw values)
+  // Column letter helper (0-indexed): 0→A, 1→B, 5→F …
+  const CL=c=>{let s='',n=c+1;while(n>0){s=String.fromCharCode(64+(n-1)%26+1)+s;n=Math.floor((n-1)/26);}return s;};
+
+  // Build sheet from rows of {v,s}, {f,v,s}, or raw values
   function makeSheet(rows){
     const aoa=rows.map(row=>row.map(cell=>cell&&typeof cell==='object'&&'v' in cell?cell.v:cell));
     const ws=XL.utils.aoa_to_sheet(aoa);
     rows.forEach((row,r)=>row.forEach((cell,c)=>{
-      if(cell&&typeof cell==='object'&&cell.s){
+      if(cell&&typeof cell==='object'&&(cell.s||cell.f)){
         const ref=XL.utils.encode_cell({r,c});
-        if(!ws[ref])ws[ref]={t:'s',v:''};
-        ws[ref].s=cell.s;
+        if(!ws[ref])ws[ref]={t:'n',v:0};
+        if(cell.s) ws[ref].s=cell.s;
+        if(cell.f){ws[ref].f=cell.f;ws[ref].t='n';if(typeof cell.v==='number')ws[ref].v=cell.v;}
       }
     }));
     return ws;
   }
+
+  // Pre-compute row counts needed for formula addresses
+  const numLogRows=sortedActs.length;
+  const numDataMonths=REPORT_MONTHS.filter(m=>mhrs[m]).length;
 
   // ── Sheet 1: Dashboard Summary ──
   const emptyRow=[ex(ST.empty),ex(ST.empty),ex(ST.empty)];
@@ -1468,10 +1477,10 @@ function downloadDashboardExcel() {
     emptyRow,
     [cx('KEY METRICS',ST.sec),ex(ST.sec),ex(ST.sec)],
     [cx('Metric',ST.hdr),cx('Value',ST.hdrR),ex(ST.hdr)],
-    [cx('Total Activities',ST.r1),cx(acts.length,ST.r1R),ex(ST.r1)],
-    [cx('Total Man Hours',ST.r2),cx(fh(totalHrs),ST.r2R),ex(ST.r2)],
-    [cx('Online Hours',ST.r1),cx(fh(onHrs),ST.r1R),ex(ST.r1)],
-    [cx('Offline Hours',ST.r2),cx(fh(offHrs),ST.r2R),ex(ST.r2)],
+    [cx('Total Activities',ST.r1),cf(`=COUNT('Full Activity Log'!H2:H${numLogRows+1})`,acts.length,ST.r1R),ex(ST.r1)],
+    [cx('Total Man Hours',ST.r2),cf(`=SUM('Full Activity Log'!H2:H${numLogRows+1})`,fh(totalHrs),ST.r2R),ex(ST.r2)],
+    [cx('Online Hours',ST.r1),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Online",'Full Activity Log'!H2:H${numLogRows+1})`,fh(onHrs),ST.r1R),ex(ST.r1)],
+    [cx('Offline Hours',ST.r2),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Offline",'Full Activity Log'!H2:H${numLogRows+1})`,fh(offHrs),ST.r2R),ex(ST.r2)],
     [cx('Active Months',ST.r1),cx(activeMonths.length,ST.r1R),ex(ST.r1)],
     emptyRow,
     [cx('HOURS BY TRAINER — ALL TIME',ST.sec),ex(ST.sec),ex(ST.sec)],
@@ -1480,8 +1489,9 @@ function downloadDashboardExcel() {
     emptyRow,
     [cx('SESSION TYPE BREAKDOWN',ST.sec),ex(ST.sec),ex(ST.sec)],
     [cx('Session Type',ST.hdr),cx('Hours',ST.hdrR),cx('% Share',ST.hdrR)],
-    [cx('Online',ST.online),cx(fh(onHrs),ST.onlineR),cx(totalHrs?fh(onHrs/totalHrs*100):0,ST.onlineR)],
-    [cx('Offline',ST.offline),cx(fh(offHrs),ST.offlineR),cx(totalHrs?fh(offHrs/totalHrs*100):0,ST.offlineR)],
+    // Online row = Excel row (17 + tTotals.length); Offline = (18 + tTotals.length); TotalManHours = B7
+    [cx('Online',ST.online),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Online",'Full Activity Log'!H2:H${numLogRows+1})`,fh(onHrs),ST.onlineR),cf(`=IFERROR(B${17+tTotals.length}/B7*100,0)`,totalHrs?fh(onHrs/totalHrs*100):0,ST.onlineR)],
+    [cx('Offline',ST.offline),cf(`=SUMIF('Full Activity Log'!D2:D${numLogRows+1},"Offline",'Full Activity Log'!H2:H${numLogRows+1})`,fh(offHrs),ST.offlineR),cf(`=IFERROR(B${18+tTotals.length}/B7*100,0)`,totalHrs?fh(offHrs/totalHrs*100):0,ST.offlineR)],
     emptyRow,
     [cx('TOP ACTIVITY TYPES BY HOURS',ST.sec),ex(ST.sec),ex(ST.sec)],
     [cx('Activity Type',ST.hdr),cx('Total Hours',ST.hdrR),cx('No. of Sessions',ST.hdrR)],
@@ -1495,13 +1505,20 @@ function downloadDashboardExcel() {
 
   // ── Sheet 2: Monthly Hours Summary ──
   const trHdrS=t=>{const c=TC[t];return c?{...bdr,fill:sf(c.bg),font:fn(c.fg,true,11),...rgt}:ST.hdrR;};
+  // Col layout: A=Month, B..F=Trainers (5 cols), G=Month Total
+  const trLastCol=CL(TRAINERS.length);   // 'F' for 5 trainers
+  const mTotCol=CL(TRAINERS.length+1);   // 'G'
   const mhsRows=[
     [cx('Month',ST.hdr),...TRAINERS.map(t=>cx(t,trHdrS(t))),cx('Month Total',ST.hdrR)],
     ...REPORT_MONTHS.filter(m=>mhrs[m]).map((m,i)=>{
+      const exR=i+2; // Excel row (header=1, data starts at 2)
       const vals=TRAINERS.map(t=>fh(mhrs[m][t]||0));
-      return [cx(m,rowS(i)),...TRAINERS.map((t,j)=>cx(vals[j],trS(t,true))),cx(fh(vals.reduce((s,v)=>s+v,0)),rowS(i,true))];
+      return [cx(m,rowS(i)),...TRAINERS.map((t,j)=>cx(vals[j],trS(t,true))),cf(`=SUM(B${exR}:${trLastCol}${exR})`,fh(vals.reduce((s,v)=>s+v,0)),rowS(i,true))];
     }),
-    [cx('GRAND TOTAL',ST.tot),...TRAINERS.map(t=>cx(fh(REPORT_MONTHS.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)),ST.totR)),cx(fh(REPORT_MONTHS.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),ST.totR)],
+    [cx('GRAND TOTAL',ST.tot),
+      ...TRAINERS.map((t,j)=>cf(`=SUM(${CL(j+1)}2:${CL(j+1)}${numDataMonths+1})`,fh(REPORT_MONTHS.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)),ST.totR)),
+      cf(`=SUM(${mTotCol}2:${mTotCol}${numDataMonths+1})`,fh(REPORT_MONTHS.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),ST.totR),
+    ],
   ];
   const ws1=makeSheet(mhsRows);
   ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:18})),{wch:13}];
@@ -1516,7 +1533,7 @@ function downloadDashboardExcel() {
       const b=isOn?ST.online:ST.offline;const bR=isOn?ST.onlineR:ST.offlineR;
       return [cx(r.month||'',b),cx(r.start||r.date||'—',b),cx(r.trainer||'',b),cx(r.session||'',b),cx(r.type||'',b),cx(r.details||r.training_details||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
     }),
-    [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cx(fh(totalHrs),ST.totR)],
+    [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cf(`=SUM(H2:H${numLogRows+1})`,fh(totalHrs),ST.totR)],
   ]);
   ws2['!cols']=[{wch:16},{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
   XL.utils.book_append_sheet(wb,ws2,'Full Activity Log');
@@ -1529,6 +1546,8 @@ function downloadDashboardExcel() {
     const mTot=fh(rows.reduce((s,r)=>s+(r.hours||0),0));
     const mEmpty=[ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty)];
     const mHdr=[cx('Date',ST.hdr),cx('Trainer',ST.hdr),cx('Session',ST.hdr),cx('Type',ST.hdr),cx('Details / Batch',ST.hdr),cx('Topic',ST.hdr),cx('Hours',ST.hdrR)];
+    // Data in col G (index 6), starting at Excel row 4 (title=1,empty=2,header=3,data from 4)
+    const mDataEndRow=rows.length+3; // last data row in Excel (1-indexed)
     const ws=makeSheet([
       [cx(m+' — Activity Log',ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title),ex(ST.title)],
       mEmpty,mHdr,
@@ -1538,7 +1557,7 @@ function downloadDashboardExcel() {
         return [cx(r.start||r.date||'—',b),cx(r.trainer||'',b),cx(r.session||'',b),cx(r.type||'',b),cx(r.details||r.training_details||'',b),cx(r.topic||'',b),cx(fh(r.hours||0),bR)];
       }),
       mEmpty,
-      [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cx(mTot,ST.totR)],
+      [ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),ex(ST.empty),cx('TOTAL HOURS →',ST.tot),cf(`=SUM(G4:G${mDataEndRow})`,mTot,ST.totR)],
     ]);
     ws['!cols']=[{wch:12},{wch:24},{wch:10},{wch:22},{wch:30},{wch:28},{wch:8}];
     const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
