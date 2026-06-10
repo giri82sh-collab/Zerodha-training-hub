@@ -315,6 +315,34 @@ for idx, m in enumerate(active_months):
     cell_gt.number_format = "0.00"
     ws_dash.cell(row=row, column=15).number_format = "0.00"
 
+# ── Update Complete Activity Log (FILTER formulas) ──────────────────────────
+log_start_row = 61 + diff
+print(f"Updating Activity Log formulas at row {log_start_row}…")
+
+# Formulas for each column in the first row of the log table
+# Note: we use _xlfn.FILTER so Excel evaluates the modern dynamic array FILTER formula correctly.
+log_formulas = {
+    "B": '=IFERROR(_xlfn.FILTER(Data!$A$2:$A$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "C": '=IFERROR(_xlfn.FILTER(Data!$B$2:$B$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "E": '=IFERROR(_xlfn.FILTER(Data!$C$2:$C$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "G": '=IFERROR(_xlfn.FILTER(Data!$D$2:$D$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "H": '=IFERROR(_xlfn.FILTER(Data!$E$2:$E$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "J": '=IFERROR(_xlfn.FILTER(Data!$F$2:$F$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "L": '=IFERROR(_xlfn.FILTER(Data!$G$2:$G$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "N": '=IFERROR(_xlfn.FILTER(Data!$H$2:$H$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
+    "Q": '=IFERROR(_xlfn.FILTER(Data!$I$2:$I$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")'
+}
+
+# Write formulas to the first row of the log
+for col_let, formula in log_formulas.items():
+    ws_dash[f"{col_let}{log_start_row}"] = formula
+
+# Clear all values and formulas below the first row of the log (up to row log_start_row + 300)
+# to allow the FILTER dynamic array to spill downwards without blocking.
+for r in range(log_start_row + 1, log_start_row + 301):
+    for c in range(2, 19): # Cols B to R
+        ws_dash.cell(row=r, column=c).value = None
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SHEET 3 — CD (Chart Data helper)
 # ══════════════════════════════════════════════════════════════════════════════
