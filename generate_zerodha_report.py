@@ -126,7 +126,12 @@ def fetch_firebase(key):
         with urllib.request.urlopen(url, timeout=10) as r:
             data = json.loads(r.read())
         if isinstance(data, dict):
-            return list(data.values())
+            if "v" in data:
+                data = data["v"]
+            else:
+                data = list(data.values())
+        if isinstance(data, list) and len(data) == 1 and isinstance(data[0], list):
+            data = data[0]
         return data or []
     except Exception as e:
         print(f"  Firebase fetch '{key}' failed: {e}")
