@@ -503,6 +503,10 @@ const TR = {"trainers":["Gaurav Kumar","Raju Vernekar","Freeda Reshma Dsouza","H
 const TRAINERS = TR.trainers;
 const COLORS_T = {'Gaurav Kumar':'#3b82f6','Raju Vernekar':'#00e5c3','Freeda Reshma Dsouza':'#f59e0b','Harish Bhat':'#ef4444','Girish A':'#a855f7'};
 const MONTHS_ORDER = ['December 2025','January 2026','February 2026','March 2026','April 2026','May 2026','June 2026','July 2026','August 2026','September 2026','October 2026','November 2026','December 2026'];
+// Dashboard & Excel only show data up to this month (change when next batch starts)
+const REPORT_END = 'May 2026';
+const REPORT_MONTHS = MONTHS_ORDER.slice(0, MONTHS_ORDER.indexOf(REPORT_END)+1);
+const REPORT_MONTHS_SET = new Set(REPORT_MONTHS);
 const KRA_COLORS = ['#00e5c3','#ff6b35','#7c6af7','#f59e0b','#ef4444'];
 const ROLE_CFG_BASE = {
   admin:  {pw:'admin123',  tabs:['dash','prog','plan','ni','cal'], color:'#f59e0b', label:'Freeda (Admin)', trainer:'Freeda Reshma Dsouza'},
@@ -806,9 +810,9 @@ function swTab(name,btn) {
 
 // ====== DASHBOARD ======
 function buildDash() {
-  const acts = getAllActs();
+  const acts = getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
   const mhrs = getAllMonthlyHours();
-  const allMonths = Object.keys(mhrs).filter(m => Object.values(mhrs[m]).some(v=>v>0));
+  const allMonths = REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
   const totalHrs = acts.reduce((s,a)=>s+a.hours,0);
   const onHrs = acts.filter(a=>a.session==='Online').reduce((s,a)=>s+a.hours,0);
   const offHrs = acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+a.hours,0);
@@ -822,8 +826,8 @@ function buildDash() {
   ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
 
   // Monthly stacked bar
-  const maxMT = Math.max(...MONTHS_ORDER.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
-  let mHtml = MONTHS_ORDER.filter(m=>mhrs[m]).map(m=>{
+  const maxMT = Math.max(...REPORT_MONTHS.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
+  let mHtml = REPORT_MONTHS.filter(m=>mhrs[m]).map(m=>{
     const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
     if(!total) return '';
     const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
@@ -847,7 +851,7 @@ function buildDash() {
   // Filters
   const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
   if(fm.options.length===1) {
-    MONTHS_ORDER.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
+    REPORT_MONTHS.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
     ['Freeda Reshma Dsouza','Girish A','Harish Bhat'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
     [...new Set(acts.map(a=>a.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
   }
@@ -1393,16 +1397,16 @@ function downloadDashboardExcel() {
   const XL=(typeof XLSXStyle!=='undefined')?XLSXStyle:XLSX;
   if(typeof XL==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
   const mhrs=getAllMonthlyHours();
-  const acts=getAllActs();
+  const acts=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
   const wb=XL.utils.book_new();
 
   // ── Data helpers ──
   const fh=v=>+(+v).toFixed(1);
-  const sortedActs=[...acts].sort((a,b)=>MONTHS_ORDER.indexOf(a.month)-MONTHS_ORDER.indexOf(b.month));
+  const sortedActs=[...acts].sort((a,b)=>REPORT_MONTHS.indexOf(a.month)-REPORT_MONTHS.indexOf(b.month));
   const totalHrs=acts.reduce((s,a)=>s+(a.hours||0),0);
   const onHrs=acts.filter(a=>a.session==='Online').reduce((s,a)=>s+(a.hours||0),0);
   const offHrs=acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+(a.hours||0),0);
-  const activeMonths=MONTHS_ORDER.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
+  const activeMonths=REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
   const aTypes={};acts.forEach(a=>{if(!aTypes[a.type])aTypes[a.type]={h:0,n:0};aTypes[a.type].h+=(a.hours||0);aTypes[a.type].n++;});
   const tTotals=TRAINERS.map(t=>[t,fh(acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+(a.hours||0),0))]).sort((a,b)=>b[1]-a[1]);
 
@@ -1493,11 +1497,11 @@ function downloadDashboardExcel() {
   const trHdrS=t=>{const c=TC[t];return c?{...bdr,fill:sf(c.bg),font:fn(c.fg,true,11),...rgt}:ST.hdrR;};
   const mhsRows=[
     [cx('Month',ST.hdr),...TRAINERS.map(t=>cx(t,trHdrS(t))),cx('Month Total',ST.hdrR)],
-    ...MONTHS_ORDER.filter(m=>mhrs[m]).map((m,i)=>{
+    ...REPORT_MONTHS.filter(m=>mhrs[m]).map((m,i)=>{
       const vals=TRAINERS.map(t=>fh(mhrs[m][t]||0));
       return [cx(m,rowS(i)),...TRAINERS.map((t,j)=>cx(vals[j],trS(t,true))),cx(fh(vals.reduce((s,v)=>s+v,0)),rowS(i,true))];
     }),
-    [cx('GRAND TOTAL',ST.tot),...TRAINERS.map(t=>cx(fh(MONTHS_ORDER.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)),ST.totR)),cx(fh(MONTHS_ORDER.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),ST.totR)],
+    [cx('GRAND TOTAL',ST.tot),...TRAINERS.map(t=>cx(fh(REPORT_MONTHS.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0)),ST.totR)),cx(fh(REPORT_MONTHS.reduce((s,m)=>s+Object.values(mhrs[m]||{}).reduce((a,b)=>a+b,0),0)),ST.totR)],
   ];
   const ws1=makeSheet(mhsRows);
   ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:18})),{wch:13}];
