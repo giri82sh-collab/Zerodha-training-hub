@@ -1411,7 +1411,7 @@ function delNISMCert(trainer,idx){
 // ====== EXCEL DOWNLOAD ======
 function downloadDashboardExcel() {
   const link = document.createElement('a');
-  link.href = './Zerodha_Training_Dashboard.xlsx';
+  link.href = './Zerodha_Training_Dashboard.xlsx?_=' + Date.now();
   link.target = '_blank';
   document.body.appendChild(link);
   link.click();
