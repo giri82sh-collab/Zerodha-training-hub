@@ -57,6 +57,25 @@ input,select,textarea{font-family:inherit;}
 .kra-save-btn{background:var(--ac);color:#0c0d14;border:none;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-top:10px;}
 .kra-save-btn:hover{background:#00c4a8;}
 .kra-bar-mini{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-left:4px;}
+/* Monthly KRA Rating */
+.kra-month-sel{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:16px;}
+.kra-month-sel:focus{outline:none;border-color:var(--ac);}
+.kra-rating-sel{background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;width:80px;}
+.kra-rating-sel:focus{outline:none;border-color:var(--ac);}
+.kra-rating-sel.val-1{border-color:#00e5c3;color:#00e5c3;background:rgba(0,229,195,.08);}
+.kra-rating-sel.val-0{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.08);}
+.kra-rating-sel.val-na{border-color:var(--tx3);color:var(--tx3);}
+.kra-avg-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.kra-avg-tbl th{background:var(--s2);padding:8px 10px;text-align:left;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--border);}
+.kra-avg-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);}
+.kra-avg-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.kra-leg{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 16px;font-size:11px;color:var(--tx2);}
+.nism-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;}
+.nism-tbl th{background:var(--s2);padding:7px 10px;text-align:left;font-size:11px;color:var(--tx2);border-bottom:1px solid var(--border);}
+.nism-tbl td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.nism-expiry-ok{color:#00e5c3;font-weight:600;font-size:11px;}
+.nism-expiry-warn{color:#f59e0b;font-weight:600;font-size:11px;}
+.nism-expiry-exp{color:#ef4444;font-weight:600;font-size:11px;}
 
 /* MONTHLY PLANNER */
 .cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
@@ -65,19 +84,19 @@ input,select,textarea{font-family:inherit;}
 .cal-month-label{font-size:18px;font-weight:700;min-width:170px;text-align:center;}
 .cal-today-btn{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:0 14px;height:34px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
 .cal-today-btn:hover{border-color:var(--ac);color:var(--ac);}
-.cal-owner-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-.cal-owner-tab{background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
-.cal-owner-tab:hover{border-color:var(--ac);color:var(--ac);}
-.cal-owner-tab.active{border-color:var(--ac);color:var(--ac);background:rgba(0,229,195,.08);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border-radius:10px;overflow:hidden;}
-.cal-dow{background:var(--s2);text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;}
-.cal-cell{background:var(--surface);min-height:110px;padding:7px 6px 5px;cursor:pointer;transition:background .12s;position:relative;vertical-align:top;}
+.cal-legend{display:flex;gap:14px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.cal-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cal-legend-lbl{font-size:11px;color:var(--tx2);font-weight:600;}
+.cal-grid-wrap{border-radius:10px;overflow:hidden;width:100%;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;background:var(--border);width:100%;}
+.cal-dow{background:var(--s2);text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;min-width:0;overflow:hidden;}
+.cal-cell{background:var(--surface);min-height:110px;padding:7px 6px 5px;cursor:pointer;transition:background .12s;position:relative;vertical-align:top;min-width:0;overflow:hidden;}
 .cal-cell:hover{background:var(--s2);}
 .cal-cell.today{background:rgba(0,229,195,.05);outline:1px inset rgba(0,229,195,.3);}
 .cal-cell.today .cal-dn{color:var(--ac);font-weight:700;background:rgba(0,229,195,.15);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
 .cal-cell.empty{background:rgba(12,13,20,.6);cursor:default;}
 .cal-dn{font-size:11px;color:var(--tx2);margin-bottom:4px;}
-.cal-evt{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;line-height:1.4;}
+.cal-evt{font-size:10px;padding:2px 5px 2px 7px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:600;line-height:1.4;border-left-width:2px;border-left-style:solid;}
 .cal-add-hint{font-size:9px;color:var(--tx3);margin-top:4px;text-align:center;}
 .cal-more{font-size:9px;color:var(--ac);margin-top:2px;font-weight:600;}
 /* EVENT MODAL */
@@ -92,6 +111,8 @@ input,select,textarea{font-family:inherit;}
 .evm-item-meta{font-size:10px;color:var(--tx2);margin-top:3px;}
 .evm-item-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:14px;cursor:pointer;padding:4px;}
 .evm-item-del:hover{color:var(--red);}
+.evm-item-edit{position:absolute;right:34px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);font-size:12px;cursor:pointer;padding:4px;}
+.evm-item-edit:hover{color:var(--ac);}
 .evm-sep{height:1px;background:var(--border);margin:14px 0;}
 .evm-add-lbl{font-size:11px;font-weight:700;color:var(--ac);margin-bottom:10px;}
 .evm-inp{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--tx);padding:9px 10px;border-radius:7px;font-size:12px;margin-bottom:8px;box-sizing:border-box;}
@@ -230,6 +251,9 @@ input,select,textarea{font-family:inherit;}
 .mtit{font-size:20px;font-weight:700;line-height:1.2;}
 .mcl{background:none;border:none;color:var(--tx2);font-size:21px;padding:4px 7px;}
 .mcl:hover{color:var(--ac2);}
+.mcopy{background:var(--s2);border:1px solid var(--border);color:var(--tx2);font-size:11px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;transition:all .15s;margin-right:8px;white-space:nowrap;}
+.mcopy:hover{border-color:var(--ac);color:var(--ac);}
+.mcopy.copied{border-color:#00e5c3;color:#00e5c3;background:rgba(0,229,195,.08);}
 .mbdy{padding:20px 24px 26px;}
 .agb{background:var(--s2);border-left:3px solid var(--ac2);padding:13px 15px;border-radius:0 5px 5px 0;margin-bottom:20px;font-size:13.5px;line-height:1.65;color:var(--tx2);}
 .agl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ac2);font-weight:700;margin-bottom:5px;}
@@ -309,6 +333,7 @@ input,select,textarea{font-family:inherit;}
       <button class="tab" data-tab="cal" onclick="swTab('cal',this)">📅 Monthly Planner</button>
     </div>
     <div class="nub" id="navUser" style="gap:10px;">
+      <span id="syncBadge" style="font-size:10px;color:var(--tx3);white-space:nowrap">🔄 Syncing...</span>
       <span onclick="openResetPw()" id="changePwLink" style="display:none;cursor:pointer;color:var(--tx3);font-size:11px;white-space:nowrap" title="Change your password">🔑 reset pw</span>
       <div onclick="doLogout()" style="display:flex;align-items:center;gap:6px;cursor:pointer;" title="Click to log out">
         <div class="nud" id="nud"></div><span id="nul"></span><span style="color:var(--tx3);font-size:11px">· logout</span>
@@ -352,7 +377,10 @@ input,select,textarea{font-family:inherit;}
         <select class="fsel" id="ftrn" onchange="renderTable()"><option value="all">All Trainers</option></select>
         <select class="fsel" id="ftyp" onchange="renderTable()"><option value="all">All Types</option></select>
         <input class="fsel-hrs" id="fMinHrs" type="number" min="0" step="0.5" placeholder="Min hours…" onchange="renderTable()" title="Filter by minimum hours">
+        <button class="fsel" style="cursor:pointer;color:var(--ac);border-color:var(--ac);background:rgba(0,229,195,.07);font-weight:700" onclick="document.getElementById('fmth').value='all';document.getElementById('ftrn').value='all';document.getElementById('ftyp').value='all';document.getElementById('fMinHrs').value='';renderTable()">✕ Show All</button>
       </div>
+      <!-- Monthly summary strip — updates with filters -->
+      <div id="logSummaryStrip" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px;"></div>
       <div class="tw"><table class="dt"><thead><tr><th>Month</th><th>Type</th><th>Details</th><th>Trainer</th><th>Session</th><th>Topic</th><th>Hours</th></tr></thead><tbody id="tbdy"></tbody></table></div>
     </div>
   </div>
@@ -377,6 +405,35 @@ input,select,textarea{font-family:inherit;}
         <button class="fsub" onclick="logActivity()">Save Activity</button>
         <span class="ferr" id="logErr"></span><span class="fok" id="logOk"></span>
       </div>
+    </div>
+    <!-- NISM Certification -->
+    <div class="card" id="nismSection" style="margin-bottom:18px">
+      <div class="ct">🏅 NISM Certifications <span style="font-size:11px;color:var(--tx3);font-weight:400">— counts toward Process Improvement KRA</span></div>
+      <div id="nismFormWrap">
+        <div class="form-grid" style="margin-top:10px">
+          <div class="fg"><label class="fl">Certificate Name</label><select class="fi" id="nismName">
+            <option>NISM Series I – Currency Derivatives</option>
+            <option>NISM Series II-A – Registrars &amp; Transfer Agents</option>
+            <option>NISM Series V-A – Mutual Fund Distributors</option>
+            <option>NISM Series VII – Securities Operations &amp; Risk Management</option>
+            <option>NISM Series VIII – Equity Derivatives</option>
+            <option>NISM Series X-A – Investment Adviser (Level 1)</option>
+            <option>NISM Series X-B – Investment Adviser (Level 2)</option>
+            <option>NISM Series XII – Securities Markets Foundation</option>
+            <option>NISM Series XV – Research Analyst</option>
+            <option>NISM Series XVII – Retirement Adviser</option>
+            <option>Other NISM / NCFM Certification</option>
+          </select></div>
+          <div class="fg"><label class="fl">Certificate Number</label><input class="fi" id="nismCertNo" placeholder="e.g. NISM-12345678"></div>
+          <div class="fg"><label class="fl">Issue Date</label><input class="fi" id="nismIssued" type="date"></div>
+          <div class="fg"><label class="fl">Expiry Date</label><input class="fi" id="nismExpiry" type="date"></div>
+        </div>
+        <div class="fsubrow">
+          <button class="fsub" onclick="saveNISMCert()">Save Certification</button>
+          <span class="ferr" id="nismErr"></span><span class="fok" id="nismOk"></span>
+        </div>
+      </div>
+      <div id="nismTable" style="margin-top:14px"></div>
     </div>
     <div class="dl-row" id="progDlRow" style="display:none">
       <button class="dl-btn" onclick="downloadDashboardExcel()">⬇ Download Trainer Dashboard (Excel)</button>
@@ -432,6 +489,7 @@ input,select,textarea{font-family:inherit;}
     <div class="mab" id="mab"></div>
     <div class="mhdr">
       <div style="flex:1"><div class="mtag" id="mtag"></div><div class="mtit" id="mtit"></div></div>
+      <button class="mcopy" id="mcopyBtn" onclick="copyDayTopics()" title="Copy topics to clipboard">📋 Copy</button>
       <button class="mcl" onclick="clModal()">✕</button>
     </div>
     <div class="mbdy" id="mbdy"></div>
@@ -445,6 +503,10 @@ const TR = {"trainers":["Gaurav Kumar","Raju Vernekar","Freeda Reshma Dsouza","H
 const TRAINERS = TR.trainers;
 const COLORS_T = {'Gaurav Kumar':'#3b82f6','Raju Vernekar':'#00e5c3','Freeda Reshma Dsouza':'#f59e0b','Harish Bhat':'#ef4444','Girish A':'#a855f7'};
 const MONTHS_ORDER = ['December 2025','January 2026','February 2026','March 2026','April 2026','May 2026','June 2026','July 2026','August 2026','September 2026','October 2026','November 2026','December 2026'];
+// Dashboard & Excel only show data up to this month (change when next batch starts)
+const REPORT_END = 'May 2026';
+const REPORT_MONTHS = MONTHS_ORDER.slice(0, MONTHS_ORDER.indexOf(REPORT_END)+1);
+const REPORT_MONTHS_SET = new Set(REPORT_MONTHS);
 const KRA_COLORS = ['#00e5c3','#ff6b35','#7c6af7','#f59e0b','#ef4444'];
 const ROLE_CFG_BASE = {
   admin:  {pw:'admin123',  tabs:['dash','prog','plan','ni','cal'], color:'#f59e0b', label:'Freeda (Admin)', trainer:'Freeda Reshma Dsouza'},
@@ -463,11 +525,79 @@ const ROLE_CFG = ROLE_CFG_BASE; // kept for compatibility
 let CUR_ROLE = 'admin';
 let CUR_TRAINER_NAME = '';
 
+// ====== FIREBASE SYNC ======
+const FB_URL = 'https://zerodha-training-hub-default-rtdb.firebaseio.com';
+const SYNC_KEYS = ['zh_logs','zh_cal','zh_kra_scores','zh_edits','zh_kra_monthly','zh_nism'];
+let _syncTimer = null;
+const _pendingWrites = new Set(); // keys with in-flight Firebase PUTs
+
+// Firebase converts arrays to {0:..,1:..} objects — convert back
+function fbFix(val) {
+  if(val===null||val===undefined) return val;
+  if(Array.isArray(val)) return val.map(fbFix);
+  if(typeof val==='object') {
+    const keys=Object.keys(val);
+    const isArr=keys.length>0&&keys.every(k=>/^\d+$/.test(k));
+    if(isArr) return keys.sort((a,b)=>parseInt(a)-parseInt(b)).map(k=>fbFix(val[k]));
+    const out={};keys.forEach(k=>out[k]=fbFix(val[k]));
+    return out;
+  }
+  return val;
+}
+
+async function gsSet(key, value) {
+  const str = JSON.stringify(value);
+  localStorage.setItem(key, str);
+  _pendingWrites.add(key);
+  try {
+    const payload = Array.isArray(value) ? JSON.stringify({v:value}) : str;
+    await fetch(`${FB_URL}/${key}.json`, {
+      method:'PUT', body:payload,
+      headers:{'Content-Type':'application/json'}
+    });
+  } catch(e) {
+  } finally {
+    _pendingWrites.delete(key);
+  }
+}
+
+async function syncAll() {
+  const badge = document.getElementById('syncBadge');
+  try {
+    const r = await fetch(`${FB_URL}/.json?_=${Date.now()}`);
+    const d = await r.json();
+    if(d && typeof d==='object') {
+      let changed = false;
+      SYNC_KEYS.forEach(k => {
+        if(_pendingWrites.has(k)) return; // write in flight — don't overwrite with stale remote
+        if(d[k]!==undefined && d[k]!==null) {
+          const raw = (d[k] && d[k].v!==undefined) ? d[k].v : fbFix(d[k]);
+          const remoteStr = JSON.stringify(raw);
+          if(remoteStr !== localStorage.getItem(k)) {
+            localStorage.setItem(k, remoteStr);
+            changed = true;
+          }
+        }
+      });
+      if(changed){ buildDash(); buildProgress(); if(document.getElementById('tab-cal')&&document.getElementById('tab-cal').classList.contains('active')) renderCal(); }
+    }
+    if(badge) badge.textContent = '🟢 Live ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    if(badge) badge.textContent = '🔴 Offline';
+  }
+}
+
+function startSyncLoop() {
+  syncAll();
+  if(_syncTimer) clearInterval(_syncTimer);
+  _syncTimer = setInterval(syncAll, 5000);
+}
+
 // ====== STORAGE ======
 function getLogs() { try { return JSON.parse(localStorage.getItem('zh_logs')||'[]'); } catch(e){return[];} }
-function saveLogs(arr) { localStorage.setItem('zh_logs', JSON.stringify(arr)); }
+function saveLogs(arr) { gsSet('zh_logs', arr); }
 function getEdits() { try { return JSON.parse(localStorage.getItem('zh_edits')||'[]'); } catch(e){return[];} }
-function saveEdits(arr) { localStorage.setItem('zh_edits', JSON.stringify(arr)); }
+function saveEdits(arr) { gsSet('zh_edits', arr); }
 
 // Merge base SP with saved edits
 function getSP() {
@@ -567,8 +697,10 @@ function doLogin() {
   }
   CUR_ROLE=selRoleId;
   CUR_TRAINER_NAME = cfg.trainer || '';
+  sessionStorage.setItem('zh_session', JSON.stringify({role:selRoleId, trainer:CUR_TRAINER_NAME}));
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='block';
+  startSyncLoop();
   document.querySelectorAll('.tab').forEach(b=>{
     b.style.display=cfg.tabs.includes(b.dataset.tab)?'':' none';
   });
@@ -611,12 +743,58 @@ function doLogin() {
   buildPlanner();
 }
 function doLogout() {
+  sessionStorage.removeItem('zh_session');
+  if(_syncTimer) clearInterval(_syncTimer);
   document.getElementById('appShell').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('pwIn').value='';
   document.getElementById('lerr').textContent='';
   selRole('admin',document.querySelector('.rc[data-role=admin]'));
 }
+
+function restoreSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('zh_session')||'null');
+    if(!s||!s.role) return;
+    const cfg = getRoleCfg(s.role);
+    if(!cfg||!cfg.tabs) return;
+    selRoleId = s.role;
+    CUR_ROLE = s.role;
+    CUR_TRAINER_NAME = s.trainer||'';
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appShell').style.display='block';
+    startSyncLoop();
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.style.display=cfg.tabs.includes(b.dataset.tab)?'':' none';
+    });
+    const first=document.querySelector(`.tab[data-tab="${cfg.tabs[0]}"]`);
+    swTab(cfg.tabs[0],first);
+    document.getElementById('nud').style.background=cfg.color;
+    document.getElementById('nul').textContent=cfg.label;
+    const isTrainerRole=(s.role==='girish'||s.role==='harish'||s.role==='admin');
+    const lfw=document.getElementById('logFormWrap');
+    if(lfw) lfw.style.display=isTrainerRole?'block':'none';
+    const logTSel=document.getElementById('logTrainer');
+    if(logTSel&&CUR_TRAINER_NAME){
+      for(let i=0;i<logTSel.options.length;i++){
+        if(logTSel.options[i].value===CUR_TRAINER_NAME||logTSel.options[i].text===CUR_TRAINER_NAME){logTSel.selectedIndex=i;break;}
+      }
+      logTSel.disabled=(s.role!=='admin');
+    }
+    const dlBtn=document.getElementById('dlDashBtn');
+    const dlRow=document.getElementById('progDlRow');
+    if(dlBtn) dlBtn.style.display=isTrainerRole?'':'none';
+    if(dlRow) dlRow.style.display=isTrainerRole?'flex':'none';
+    const cpLink=document.getElementById('changePwLink');
+    if(cpLink) cpLink.style.display=(s.role==='admin'||s.role==='girish'||s.role==='harish')?'':'none';
+    if(s.role==='girish'||s.role==='harish') document.getElementById('canEditNote').textContent='✏ You can edit topics, times and links';
+    else if(s.role==='admin') document.getElementById('canEditNote').textContent='✏ Admin mode — full editing enabled';
+    if(cfg.tabs.includes('dash')) buildDash();
+    if(cfg.tabs.includes('prog')) buildProgress();
+    buildPlanner();
+  } catch(e) {}
+}
+window.addEventListener('load', restoreSession);
 const _ss=document.createElement('style');
 _ss.textContent='@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}';
 document.head.appendChild(_ss);
@@ -632,9 +810,9 @@ function swTab(name,btn) {
 
 // ====== DASHBOARD ======
 function buildDash() {
-  const acts = getAllActs();
+  const acts = getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
   const mhrs = getAllMonthlyHours();
-  const allMonths = Object.keys(mhrs).filter(m => Object.values(mhrs[m]).some(v=>v>0));
+  const allMonths = REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
   const totalHrs = acts.reduce((s,a)=>s+a.hours,0);
   const onHrs = acts.filter(a=>a.session==='Online').reduce((s,a)=>s+a.hours,0);
   const offHrs = acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+a.hours,0);
@@ -648,8 +826,8 @@ function buildDash() {
   ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
 
   // Monthly stacked bar
-  const maxMT = Math.max(...MONTHS_ORDER.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
-  let mHtml = MONTHS_ORDER.filter(m=>mhrs[m]).map(m=>{
+  const maxMT = Math.max(...REPORT_MONTHS.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
+  let mHtml = REPORT_MONTHS.filter(m=>mhrs[m]).map(m=>{
     const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
     if(!total) return '';
     const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
@@ -673,23 +851,59 @@ function buildDash() {
   // Filters
   const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
   if(fm.options.length===1) {
-    MONTHS_ORDER.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
-    TRAINERS.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
+    REPORT_MONTHS.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
+    ['Freeda Reshma Dsouza','Girish A','Harish Bhat'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
     [...new Set(acts.map(a=>a.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
   }
   renderTable();
 }
 function renderTable() {
   const fm=document.getElementById('fmth').value,ft=document.getElementById('ftrn').value,fty=document.getElementById('ftyp').value;
-  let rows=getAllActs();
+  let rows=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
   if(fm!=='all') rows=rows.filter(r=>r.month===fm);
   if(ft!=='all') rows=rows.filter(r=>r.trainer&&r.trainer.includes(ft));
   if(fty!=='all') rows=rows.filter(r=>r.type===fty);
   const minHrsEl=document.getElementById('fMinHrs');
   const minHrs=minHrsEl?parseFloat(minHrsEl.value)||0:0;
   if(minHrs>0) rows=rows.filter(r=>(r.hours||0)>=minHrs);
-  // Trainer role: only show own activities
-  if(CUR_ROLE!=='admin'&&CUR_TRAINER_NAME) rows=rows.filter(r=>r.trainer&&r.trainer.includes(CUR_TRAINER_NAME));
+
+  // Update main KPI cards to reflect current filter
+  const kpiEl=document.getElementById('kpiRow');
+  if(kpiEl){
+    const fTot=rows.reduce((s,r)=>s+(r.hours||0),0);
+    const fOn=rows.filter(r=>r.session==='Online').reduce((s,r)=>s+(r.hours||0),0);
+    const fOff=rows.filter(r=>r.session==='Offline').reduce((s,r)=>s+(r.hours||0),0);
+    const fMths=[...new Set(rows.map(r=>r.month))].length;
+    const fLbl=fm==='all'?'All Months':fm;
+    kpiEl.innerHTML=[
+      ['Total Activities',rows.length,fLbl,'#00e5c3'],
+      ['Total Man Hours',fTot.toFixed(1),fLbl,'#ff6b35'],
+      ['Online Hours',fOn.toFixed(1),fLbl,'#7c6af7'],
+      ['Offline Hours',fOff.toFixed(1),fLbl,'#f59e0b'],
+      ['Active Months',fMths,'With logged data','#22c55e'],
+    ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
+  }
+
+  // Summary strip
+  const strip=document.getElementById('logSummaryStrip');
+  if(strip){
+    const totalHrs=rows.reduce((s,r)=>s+(r.hours||0),0);
+    const onHrs=rows.filter(r=>r.session==='Online').reduce((s,r)=>s+(r.hours||0),0);
+    const offHrs=rows.filter(r=>r.session==='Offline').reduce((s,r)=>s+(r.hours||0),0);
+    const label=fm==='all'?'All Months':fm;
+    const kpis=[
+      ['Total Activities',rows.length,'#00e5c3'],
+      ['Total Man Hours',totalHrs.toFixed(1)+'h','#ff6b35'],
+      ['Online Hours',onHrs.toFixed(1)+'h','#38bdf8'],
+      ['Offline Hours',offHrs.toFixed(1)+'h','#86efac'],
+    ];
+    strip.innerHTML=kpis.map(([l,v,c])=>`<div style="flex:1;min-width:130px;background:var(--s2);border:1px solid var(--border);border-top:2px solid ${c};border-radius:8px;padding:10px 14px">
+      <div style="font-size:10px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px">${l}</div>
+      <div style="font-size:20px;font-weight:700;color:${c};margin-top:2px">${v}</div>
+      <div style="font-size:10px;color:var(--tx3);margin-top:1px">${label}</div>
+    </div>`).join('');
+  }
+
   const ms=m=>m?m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26'):'—';
   document.getElementById('tbdy').innerHTML=rows.map(r=>`<tr><td style="font-size:11px;color:var(--tx2)">${ms(r.month)}</td><td><span class="badge bty">${esc(r.type)}</span></td><td>${esc(r.details||r.training_details||'—')}</td><td style="font-size:12px">${esc(r.trainer||'—')}</td><td><span class="badge ${r.session==='Online'?'bon':'bof'}">${r.session||'—'}</span></td><td style="font-size:12px;color:var(--tx2)">${esc(r.topic||'—')}</td><td><span class="hp">${r.hours}h</span></td></tr>`).join('');
 }
@@ -730,7 +944,8 @@ const KRA_TYPE_MAP = {
   'Varsity Video Shoot':'Process Improvement','Varsity Backend Support':'Process Improvement',
   'Ticket Tool Video':'Process Improvement','Training Need Analysis':'Process Improvement',
   'Self Assessment Form':'Process Improvement','Content Team Session':'Refresher / Up-trainings',
-  'Support Team OJT':'OJT / 0-30-60 Days Performance'
+  'Support Team OJT':'OJT / 0-30-60 Days Performance',
+  'NISM Certification':'Process Improvement'
 };
 const KRA_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
 const KRA_WEIGHTS = {...Object.fromEntries(TR.kra.map(k=>[k.area,k.weight])), 'Behavior & Capabilities':10};
@@ -772,6 +987,7 @@ function buildProgress() {
     renderKRAEditor();
   }
 
+  renderNISMSection();
   // Personal KRA % for trainer view
   const pkWrap=document.getElementById('personalKRAWrap');
   if(pkWrap) {
@@ -918,6 +1134,35 @@ function clModal(){document.getElementById('mo').classList.remove('open');docume
 function clModalBg(e){if(e.target===document.getElementById('mo')) clModal();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape') clModal();});
 
+function copyDayTopics(){
+  if(!_curDay) return;
+  const lines=[_curDay.title,''];
+  _curDay.topics.forEach(t=>{
+    if(t.type==='break'){
+      lines.push(`— ${t.name} —`);
+    } else {
+      const time=t.time?` (${t.time} min)`:'';
+      lines.push(`• ${t.text}${time}`);
+    }
+  });
+  const text=lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('mcopyBtn');
+    if(!btn) return;
+    btn.textContent='✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);
+  }).catch(()=>{
+    // Fallback for older browsers
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn=document.getElementById('mcopyBtn');
+    if(btn){btn.textContent='✅ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copy';btn.classList.remove('copied');},2000);}
+  });
+}
+
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 
@@ -927,23 +1172,21 @@ const KRA_AREAS_ALL = [...TR.kra.map(k=>k.area), 'Behavior & Capabilities'];
 function getKRAScores() {
   try { return JSON.parse(localStorage.getItem('zh_kra_scores')||'{}'); } catch(e){return{};}
 }
-function saveKRAScoresFromUI() {
-  const scores = {};
-  KRA_AREAS_ALL.forEach(area => {
-    scores[area] = {};
-    KRA_EDIT_TRAINERS.forEach(t => {
-      const inp = document.getElementById('krae_'+btoa(area+'|'+t).replace(/=/g,''));
-      scores[area][t] = inp ? (parseFloat(inp.value)||0) : 0;
-    });
-  });
-  localStorage.setItem('zh_kra_scores', JSON.stringify(scores));
-  const btn = document.getElementById('kraeSaveBtn');
-  if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent='Save KRA Scores';},1500);}
-  // Refresh personal KRA cards if a trainer is shown
-  buildProgress();
+function getKRAMonthly() {
+  try { return JSON.parse(localStorage.getItem('zh_kra_monthly')||'{}'); } catch(e){return{};}
 }
+function saveKRAMonthly(data) {
+  gsSet('zh_kra_monthly', data);
+}
+
+// Returns current month string e.g. "May 2026"
+function currentMonthStr() {
+  return new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+}
+
+let _kraSelMonth = currentMonthStr();
+
 function renderKRAEditor() {
-  // Insert/update the KRA editor card after the KRA framework section
   let wrap = document.getElementById('kraEditorWrap');
   if(!wrap){
     wrap = document.createElement('div');
@@ -953,28 +1196,216 @@ function renderKRAEditor() {
     const kfw = document.getElementById('kraFrameworkSection');
     if(kfw && kfw.parentNode) kfw.parentNode.insertBefore(wrap, kfw.nextSibling);
   }
-  const scores = getKRAScores();
+  // Make sure selected month is valid
+  if(!MONTHS_ORDER.includes(_kraSelMonth)) _kraSelMonth = currentMonthStr();
+
+  const monthly = getKRAMonthly();
+  const monthOpts = MONTHS_ORDER.map(m=>`<option value="${m}"${m===_kraSelMonth?' selected':''}>${m}</option>`).join('');
+
+  // Build rating rows for selected month
   const rows = KRA_AREAS_ALL.map(area => {
     const wt = KRA_WEIGHTS[area]||0;
     const clr = KRA_CLR[area]||'var(--ac)';
     const cells = KRA_EDIT_TRAINERS.map(t => {
-      const val = (scores[area]||{})[t]||0;
-      const id = 'krae_'+btoa(area+'|'+t).replace(/=/g,'');
-      const pct = Math.min(100,val);
-      return `<td><div style="display:flex;align-items:center;gap:6px">
-        <input class="kra-score-inp" id="${id}" type="number" min="0" max="100" step="1" value="${val}" title="${area} score for ${t}">
-        <span style="color:var(--tx3);font-size:10px">%</span>
-        <span class="kra-bar-mini" style="width:${pct*0.8}px;background:${clr}"></span>
-      </div></td>`;
+      const val = ((monthly[t]||{})[_kraSelMonth]||{})[area] ?? 'na';
+      const id = `krm_${t.replace(/\s+/g,'_')}_${area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+      return `<td><select class="kra-rating-sel val-${val}" id="${id}" onchange="kraRatingColor(this)">
+        <option value="na"${val==='na'?' selected':''}>N/A</option>
+        <option value="1"${val==='1'?' selected':''}>1 — Done ✅</option>
+        <option value="0"${val==='0'?' selected':''}>0 — Missed ❌</option>
+      </select></td>`;
     }).join('');
-    return `<tr><td style="color:var(--tx2)">${area} <span style="color:${clr};font-size:10px">(${wt}%)</span></td>${cells}</tr>`;
+    return `<tr>
+      <td><span style="color:${clr};font-weight:600">${area}</span><br><span style="font-size:10px;color:var(--tx3)">${wt}% weight</span></td>
+      ${cells}
+    </tr>`;
   }).join('');
-  wrap.innerHTML = `<div class="ct" style="margin-bottom:12px">✏️ Edit Trainer KRA Scores <span style="font-size:11px;color:var(--tx3);font-weight:400">(Admin only — enter % achievement per area)</span></div>
+
+  // Yearly average summary
+  const avgRows = KRA_AREAS_ALL.map(area => {
+    const clr = KRA_CLR[area]||'var(--ac)';
+    const cells = KRA_EDIT_TRAINERS.map(t => {
+      const trainerData = monthly[t]||{};
+      const scores = MONTHS_ORDER.map(m=>((trainerData[m]||{})[area])).filter(v=>v==='0'||v==='1').map(Number);
+      if(!scores.length) return `<td><span class="kra-avg-chip" style="background:var(--s2);color:var(--tx3)">—</span></td>`;
+      const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+      const pct = Math.round(avg*100);
+      const chipClr = pct>=80?'rgba(0,229,195,.15)':pct>=50?'rgba(245,158,11,.15)':'rgba(239,68,68,.15)';
+      const txtClr = pct>=80?'#00e5c3':pct>=50?'#f59e0b':'#ef4444';
+      return `<td><span class="kra-avg-chip" style="background:${chipClr};color:${txtClr}">${pct}%</span><span style="font-size:10px;color:var(--tx3);margin-left:4px">(${scores.length} mo)</span></td>`;
+    }).join('');
+    return `<tr><td style="color:${clr};font-weight:600">${area}</td>${cells}</tr>`;
+  }).join('');
+
+  // Overall yearly score per trainer
+  const overallRow = KRA_EDIT_TRAINERS.map(t => {
+    const trainerData = monthly[t]||{};
+    let weightedSum=0, weightedTotal=0;
+    KRA_AREAS_ALL.forEach(area => {
+      const wt = KRA_WEIGHTS[area]||0;
+      const scores = MONTHS_ORDER.map(m=>((trainerData[m]||{})[area])).filter(v=>v==='0'||v==='1').map(Number);
+      if(scores.length){
+        const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+        weightedSum += avg * wt;
+        weightedTotal += wt;
+      }
+    });
+    if(!weightedTotal) return `<td><span class="kra-avg-chip" style="background:var(--s2);color:var(--tx3)">No data</span></td>`;
+    const overall = Math.round((weightedSum/weightedTotal)*100);
+    const chipClr = overall>=80?'rgba(0,229,195,.2)':overall>=50?'rgba(245,158,11,.2)':'rgba(239,68,68,.2)';
+    const txtClr = overall>=80?'#00e5c3':overall>=50?'#f59e0b':'#ef4444';
+    return `<td><span class="kra-avg-chip" style="background:${chipClr};color:${txtClr};font-size:13px">${overall}%</span></td>`;
+  }).join('');
+
+  wrap.innerHTML = `
+  <div class="ct" style="margin-bottom:4px">📊 Monthly KRA Rating <span style="font-size:11px;color:var(--tx3);font-weight:400">(Admin only)</span></div>
+  <div class="kra-leg">
+    <span>🟢 <b>1</b> — Had the activity & completed it</span>
+    <span>🔴 <b>0</b> — Had the activity but did NOT complete it</span>
+    <span>⚪ <b>N/A</b> — Activity not applicable this month</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <label style="font-size:12px;color:var(--tx2);font-weight:600">Rating Month:</label>
+    <select class="kra-month-sel" onchange="_kraSelMonth=this.value;renderKRAEditor()">${monthOpts}</select>
+  </div>
   <table class="kra-edit-tbl">
     <thead><tr><th>KRA Area</th>${KRA_EDIT_TRAINERS.map(t=>`<th>${t.split(' ')[0]}</th>`).join('')}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
-  <button class="kra-save-btn" id="kraeSaveBtn" onclick="saveKRAScoresFromUI()">Save KRA Scores</button>`;
+  <button class="kra-save-btn" onclick="saveKRAMonthlyFromUI()">💾 Save ${_kraSelMonth} Ratings</button>
+
+  <div class="ct" style="margin-top:26px;margin-bottom:8px">📈 Yearly Appraisal Summary <span style="font-size:11px;color:var(--tx3);font-weight:400">(average across all rated months — N/A excluded)</span></div>
+  <table class="kra-avg-tbl">
+    <thead><tr><th>KRA Area</th>${KRA_EDIT_TRAINERS.map(t=>`<th>${t.split(' ')[0]}</th>`).join('')}</tr></thead>
+    <tbody>${avgRows}
+    <tr style="border-top:2px solid var(--border)">
+      <td style="font-weight:700;color:var(--tx)">Overall Score</td>${overallRow}
+    </tr>
+    </tbody>
+  </table>`;
+}
+
+function kraRatingColor(sel){
+  sel.className='kra-rating-sel val-'+sel.value;
+}
+
+function saveKRAMonthlyFromUI(){
+  const monthly = getKRAMonthly();
+  KRA_EDIT_TRAINERS.forEach(t => {
+    if(!monthly[t]) monthly[t]={};
+    if(!monthly[t][_kraSelMonth]) monthly[t][_kraSelMonth]={};
+    KRA_AREAS_ALL.forEach(area => {
+      const id = `krm_${t.replace(/\s+/g,'_')}_${area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+      const sel = document.getElementById(id);
+      if(sel) monthly[t][_kraSelMonth][area] = sel.value;
+    });
+  });
+  saveKRAMonthly(monthly);
+  const btn = document.querySelector('#kraEditorWrap .kra-save-btn');
+  if(btn){btn.textContent='✅ Saved!';setTimeout(()=>{btn.textContent=`💾 Save ${_kraSelMonth} Ratings`;},1500);}
+  renderKRAEditor();
+}
+
+// ====== NISM CERTIFICATIONS ======
+function getNISM(){try{return JSON.parse(localStorage.getItem('zh_nism')||'{}');}catch(e){return{};}}
+function saveNISMData(d){gsSet('zh_nism',d);}
+
+function renderNISMSection(){
+  const sec=document.getElementById('nismSection');
+  if(!sec) return;
+  const isGuest=(CUR_ROLE==='guest');
+  if(isGuest){sec.style.display='none';return;}
+  const isAdmin=(CUR_ROLE==='admin');
+  const nism=getNISM();
+  // Admin sees all trainers; trainer sees only their own
+  const trainersToShow=isAdmin?KRA_EDIT_TRAINERS:[CUR_TRAINER_NAME].filter(Boolean);
+  const now=new Date();
+
+  let html='';
+  trainersToShow.forEach(t=>{
+    const certs=(nism[t]||[]);
+    if(!certs.length&&!isAdmin) return;
+    const rows=certs.map((c,i)=>{
+      const exp=c.expiry?new Date(c.expiry):null;
+      let expiryHtml='—';
+      if(exp){
+        const days=Math.round((exp-now)/(1000*60*60*24));
+        const cls=days<0?'nism-expiry-exp':days<90?'nism-expiry-warn':'nism-expiry-ok';
+        const lbl=days<0?`Expired ${Math.abs(days)}d ago`:days<90?`Expires in ${days}d`:`Valid until ${c.expiry}`;
+        expiryHtml=`<span class="${cls}">${lbl}</span>`;
+      }
+      const canDel=isAdmin||t===CUR_TRAINER_NAME;
+      return `<tr>
+        <td>${c.name}</td>
+        <td style="color:var(--tx2)">${c.certNo||'—'}</td>
+        <td style="color:var(--tx2)">${c.issued||'—'}</td>
+        <td>${expiryHtml}</td>
+        ${canDel?`<td><button style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:13px" onclick="delNISMCert('${t}',${i})" title="Delete">✕</button></td>`:'<td></td>'}
+      </tr>`;
+    }).join('');
+    const trainerLabel=isAdmin?`<div style="font-size:11px;font-weight:700;color:${COLORS_T[t]||'var(--ac)'};margin-bottom:4px">${t}</div>`:'';
+    html+=`${trainerLabel}<table class="nism-tbl"><thead><tr><th>Certificate</th><th>Cert Number</th><th>Issued</th><th>Expiry</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="color:var(--tx3);font-size:11px">No certifications logged yet.</td></tr>'}</tbody></table>`;
+    if(isAdmin) html+='<div style="height:10px"></div>';
+  });
+
+  document.getElementById('nismTable').innerHTML=html||'<div style="font-size:12px;color:var(--tx3)">No certifications found.</div>';
+
+  // Hide add form for admin (they don't add certs; trainers do)
+  const fw=document.getElementById('nismFormWrap');
+  if(fw) fw.style.display=isAdmin?'none':'';
+}
+
+function saveNISMCert(){
+  const name=document.getElementById('nismName')?.value||'';
+  const certNo=(document.getElementById('nismCertNo')?.value||'').trim();
+  const issued=document.getElementById('nismIssued')?.value||'';
+  const expiry=document.getElementById('nismExpiry')?.value||'';
+  const err=document.getElementById('nismErr');const ok=document.getElementById('nismOk');
+  err.textContent='';ok.textContent='';
+  if(!certNo){err.textContent='Enter certificate number.';return;}
+  if(!issued){err.textContent='Enter issue date.';return;}
+  if(!expiry){err.textContent='Enter expiry date.';return;}
+
+  const trainer=CUR_TRAINER_NAME;
+  if(!trainer){err.textContent='Trainer name not set.';return;}
+
+  const id=Date.now().toString(36);
+  const nism=getNISM();
+  if(!nism[trainer]) nism[trainer]=[];
+  nism[trainer].push({id,name,certNo,issued,expiry});
+  saveNISMData(nism);
+
+  // Add a log entry → maps to Process Improvement KRA
+  const issuedDate=new Date(issued);
+  const month=issuedDate.toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+  const logs=getLogs();
+  logs.push({month,type:'NISM Certification',details:`${name} — Cert No: ${certNo}`,trainer,session:'Offline',topic:name,hours:0,start:issued,end:expiry,nismId:id});
+  saveLogs(logs);
+
+  ok.textContent=`✓ ${name} saved!`;
+  setTimeout(()=>ok.textContent='',3000);
+  document.getElementById('nismCertNo').value='';
+  document.getElementById('nismIssued').value='';
+  document.getElementById('nismExpiry').value='';
+  renderNISMSection();
+  buildDash();buildProgress();
+}
+
+function delNISMCert(trainer,idx){
+  if(!confirm('Remove this certification?')) return;
+  const nism=getNISM();
+  const certs=nism[trainer]||[];
+  const nismId=certs[idx]?.id;
+  certs.splice(idx,1);
+  if(!certs.length) delete nism[trainer]; else nism[trainer]=certs;
+  saveNISMData(nism);
+  // Remove log entry
+  if(nismId){
+    const logs=getLogs().filter(l=>l.nismId!==nismId);
+    saveLogs(logs);
+    buildDash();buildProgress();
+  }
+  renderNISMSection();
 }
 
 // ====== EXCEL DOWNLOAD ======
@@ -992,6 +1423,7 @@ let CAL_YEAR = new Date().getFullYear();
 let CAL_MONTH = new Date().getMonth();
 let CAL_OWNER = 'admin';
 let EVT_MODAL_DATE = '';
+let EVT_EDIT_TARGET = null; // {owner, idx} when editing, null when adding
 
 const CAL_DAYS_HDR = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const CAL_MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1002,39 +1434,32 @@ const EVT_TYPES = {
   'Leave':      {bg:'rgba(239,68,68,.15)',   color:'#ef4444'},
   'Other':      {bg:'rgba(90,97,128,.2)',    color:'#9098b8'},
 };
-const CAL_OWNER_LABELS = {admin:'Freeda (Mine)', girish:'Girish', harish:'Harish'};
+const CAL_OWNER_COLORS = {admin:'#00e5c3', girish:'#7c6af7', harish:'#f59e0b'};
 
 function getCalData(){try{return JSON.parse(localStorage.getItem('zh_cal')||'{}');}catch(e){return{};}}
-function saveCalData(d){localStorage.setItem('zh_cal',JSON.stringify(d));}
+function saveCalData(d){gsSet('zh_cal',d);}
 
 function initCal(){
   CAL_YEAR = new Date().getFullYear();
   CAL_MONTH = new Date().getMonth();
-  if(CUR_ROLE==='girish'||CUR_ROLE==='harish') CAL_OWNER=CUR_ROLE;
-  else CAL_OWNER='admin';
+  CAL_OWNER = (CUR_ROLE==='girish'||CUR_ROLE==='harish') ? CUR_ROLE : 'admin';
   renderCal();
 }
 
 function renderCal(){
   const wrap=document.getElementById('calWrap');
   if(!wrap) return;
-  const isAdmin=(CUR_ROLE==='admin');
   const isGuest=(CUR_ROLE==='guest');
   const canEdit=!isGuest;
 
-  // Owner switcher (admin only)
-  let ownerHtml='';
-  if(isAdmin){
-    ownerHtml=`<div class="cal-owner-tabs">${Object.entries(CAL_OWNER_LABELS).map(([k,l])=>`<button class="cal-owner-tab${CAL_OWNER===k?' active':''}" onclick="setCalOwner('${k}')">${l}</button>`).join('')}</div>`;
-  }
-
-  // Build grid
   const today=new Date();
   const firstDay=new Date(CAL_YEAR,CAL_MONTH,1);
   const daysInMonth=new Date(CAL_YEAR,CAL_MONTH+1,0).getDate();
-  const startDow=(firstDay.getDay()+6)%7; // Mon=0
+  const startDow=(firstDay.getDay()+6)%7;
   const data=getCalData();
-  const ownerData=(data[CAL_OWNER]||{});
+
+  // Legend showing all three owners
+  const legendHtml=`<div class="cal-legend">${Object.entries(CAL_OWNER_COLORS).map(([k,c])=>`<span class="cal-legend-dot" style="background:${c}"></span><span class="cal-legend-lbl">${CAL_OWNER_TRAINER[k]?.split(' ')[0]||k}</span>`).join('')}</div>`;
 
   let cells=CAL_DAYS_HDR.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for(let i=0;i<startDow;i++) cells+=`<div class="cal-cell empty"></div>`;
@@ -1042,18 +1467,23 @@ function renderCal(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${CAL_YEAR}-${String(CAL_MONTH+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=today.getFullYear()===CAL_YEAR&&today.getMonth()===CAL_MONTH&&today.getDate()===d;
-    const evts=ownerData[ds]||[];
-    const evtChips=evts.slice(0,3).map(e=>{
+    // Merge all owners' events for this day
+    const allEvts=[];
+    Object.keys(CAL_OWNER_COLORS).forEach(owner=>{
+      ((data[owner]||{})[ds]||[]).forEach(e=>allEvts.push({...e,_owner:owner}));
+    });
+    allEvts.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const evtChips=allEvts.slice(0,3).map(e=>{
       const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
-      return `<div class="cal-evt" style="background:${s.bg};color:${s.color}">${e.time?e.time+' ':''}${e.title}</div>`;
+      const oc=CAL_OWNER_COLORS[e._owner]||'#9098b8';
+      return `<div class="cal-evt" style="background:${s.bg};color:${s.color};border-left-color:${oc}">${e.time?e.time+' ':''}${e.title}</div>`;
     }).join('');
-    const moreHtml=evts.length>3?`<div class="cal-more">+${evts.length-3} more</div>`:'';
-    const hint=canEdit&&evts.length===0?`<div class="cal-add-hint">＋ add</div>`:'';
+    const moreHtml=allEvts.length>3?`<div class="cal-more">+${allEvts.length-3} more</div>`:'';
+    const hint=canEdit&&allEvts.length===0?`<div class="cal-add-hint">＋ add</div>`:'';
     cells+=`<div class="cal-cell${isToday?' today':''}" onclick="${canEdit?`openEvtModal('${ds}')`:''}">`
       +`<div class="cal-dn">${d}</div>${evtChips}${moreHtml}${hint}</div>`;
   }
 
-  // Pad trailing cells to complete last row
   const totalCells=startDow+daysInMonth;
   const remainder=totalCells%7;
   if(remainder>0){for(let i=0;i<7-remainder;i++) cells+=`<div class="cal-cell empty"></div>`;}
@@ -1066,31 +1496,50 @@ function renderCal(){
       <button class="cal-today-btn" onclick="calGoToday()">Today</button>
       ${isGuest?'<span style="font-size:11px;color:var(--tx3);margin-left:8px">👁 Read-only view</span>':''}
     </div>
-    ${ownerHtml}
-    <div class="cal-grid">${cells}</div>`;
+    ${legendHtml}
+    <div class="cal-grid-wrap"><div class="cal-grid">${cells}</div></div>`;
 }
-
-function setCalOwner(k){CAL_OWNER=k;renderCal();}
 function calPrev(){if(--CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}renderCal();}
 function calNext(){if(++CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}renderCal();}
 function calGoToday(){CAL_YEAR=new Date().getFullYear();CAL_MONTH=new Date().getMonth();renderCal();}
+
+// Maps planner owner key → full trainer name for log entries
+const CAL_OWNER_TRAINER = {admin:'Freeda Reshma Dsouza', girish:'Girish A', harish:'Harish Bhat'};
+// Maps planner event type → activity log type
+const CAL_TYPE_TO_ACT = {Training:'Support Training', Assessment:'Assessment', Meeting:'Other', Leave:'Other', Other:'Other'};
+
+function dateToMonth(ds){
+  const d=new Date(ds+'T00:00:00');
+  return d.toLocaleDateString('en-IN',{month:'long',year:'numeric'}).replace(' ',' ');
+}
 
 function openEvtModal(ds){
   EVT_MODAL_DATE=ds;
   const isGuest=(CUR_ROLE==='guest');
   const data=getCalData();
-  const evts=((data[CAL_OWNER]||{})[ds])||[];
   const d=new Date(ds+'T00:00:00');
   const label=d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+  // Collect all owners' events for this day
+  const allEvts=[];
+  Object.keys(CAL_OWNER_COLORS).forEach(owner=>{
+    ((data[owner]||{})[ds]||[]).forEach((e,i)=>allEvts.push({...e,_owner:owner,_idx:i}));
+  });
+  allEvts.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+
   let listHtml='';
-  if(evts.length){
-    listHtml=`<div class="evm-list">${evts.map((e,i)=>{
+  if(allEvts.length){
+    listHtml=`<div class="evm-list">${allEvts.map(e=>{
       const s=EVT_TYPES[e.type]||EVT_TYPES['Other'];
-      return `<div class="evm-item">
-        <div class="evm-item-title" style="color:${s.color}">${e.title}</div>
-        <div class="evm-item-meta">${[e.time,e.type,e.notes].filter(Boolean).join(' · ')}</div>
-        ${!isGuest?`<button class="evm-item-del" onclick="delEvt(${i})">✕</button>`:''}
+      const oc=CAL_OWNER_COLORS[e._owner]||'#9098b8';
+      const ownerFirst=CAL_OWNER_TRAINER[e._owner]?.split(' ')[0]||e._owner;
+      const hoursTag=e.hours?`<span style="color:var(--ac);font-weight:700"> · ${e.hours}h</span>`:'';
+      const canEdit=!isGuest&&(CUR_ROLE==='admin'||e._owner===CUR_ROLE);
+      return `<div class="evm-item" style="border-left:3px solid ${oc}">
+        <div class="evm-item-title" style="color:${s.color}">${e.title}${hoursTag} <span style="font-size:10px;color:${oc};font-weight:700;margin-left:4px">${ownerFirst}</span></div>
+        <div class="evm-item-meta">${[e.time,e.type,e.session,e.notes].filter(Boolean).join(' · ')}</div>
+        ${canEdit?`<button class="evm-item-edit" onclick="editEvt('${e._owner}',${e._idx})" title="Edit">✏️</button>`:''}
+        ${canEdit?`<button class="evm-item-del" onclick="delEvt('${e._owner}',${e._idx})" title="Delete">✕</button>`:''}
       </div>`;
     }).join('')}</div>`;
   } else {
@@ -1101,48 +1550,151 @@ function openEvtModal(ds){
   if(!isGuest){
     const typeOpts=Object.keys(EVT_TYPES).map(t=>`<option>${t}</option>`).join('');
     addHtml=`<div class="evm-sep"></div>
-      <div class="evm-add-lbl">＋ Add Event</div>
-      <input class="evm-inp" id="evmTitleInp" placeholder="Event title *" type="text" onkeydown="if(event.key==='Enter')saveEvt()">
+      <div class="evm-add-lbl" id="evmFormLbl">＋ Add Event</div>
+      <input class="evm-inp" id="evmTitleInp" placeholder="Session title / topic *" type="text">
       <div class="evm-row2">
-        <input class="evm-inp" id="evmTimeInp" placeholder="Time (e.g. 10:00)" type="time" style="margin-bottom:0">
-        <select class="evm-inp" id="evmTypeInp" style="margin-bottom:0">${typeOpts}</select>
+        <select class="evm-inp" id="evmTimeInp" style="margin-bottom:0"><option value="">-- Start Time --</option></select>
+        <input class="evm-inp" id="evmHoursInp" placeholder="Duration (hrs) e.g. 2.5" type="number" min="0.25" step="0.25" style="margin-bottom:0">
       </div>
-      <input class="evm-inp" id="evmNotesInp" placeholder="Notes (optional)" style="margin-top:8px">
-      <button class="evm-save" onclick="saveEvt()">Add Event</button>`;
+      <div class="evm-row2" style="margin-top:8px">
+        <select class="evm-inp" id="evmTypeInp" style="margin-bottom:0">${typeOpts}</select>
+        <select class="evm-inp" id="evmSessionInp" style="margin-bottom:0"><option>Online</option><option>Offline</option></select>
+      </div>
+      <input class="evm-inp" id="evmNotesInp" placeholder="Description / batch details (optional)" style="margin-top:8px">
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap">
+        <button class="evm-save" id="evmSaveBtn" onclick="saveEvt()">Add Event</button>
+        <button id="evmCancelBtn" style="display:none;background:var(--s2);border:1px solid var(--border);color:var(--tx2);padding:9px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer" onclick="cancelEdit()">Cancel</button>
+        <span style="font-size:10px;color:var(--tx3)">Hours will auto-sync to Dashboard</span>
+      </div>`;
   }
 
   document.getElementById('evmTitle2').textContent=label;
   document.getElementById('evmBody').innerHTML=listHtml+addHtml;
   document.getElementById('evmOverlay').style.display='flex';
+  EVT_EDIT_TARGET=null;
+  // Populate time dropdown: 7:00 AM – 8:00 PM in 30-min slots
+  const timeSel=document.getElementById('evmTimeInp');
+  if(timeSel){
+    for(let h=7;h<=20;h++){
+      ['00','30'].forEach(m=>{
+        if(h===20&&m==='30') return;
+        const hh=String(h).padStart(2,'0');
+        const ampm=h<12?'AM':h===12?'PM':'PM';
+        const h12=h===0?12:h>12?h-12:h;
+        const opt=document.createElement('option');
+        opt.value=`${hh}:${m}`;
+        opt.textContent=`${h12}:${m} ${ampm}`;
+        timeSel.appendChild(opt);
+      });
+    }
+  }
   if(!isGuest) setTimeout(()=>{const t=document.getElementById('evmTitleInp');if(t)t.focus();},60);
 }
 
 function closeEvtModal(){document.getElementById('evmOverlay').style.display='none';}
+
+function editEvt(owner, idx){
+  const data=getCalData();
+  const e=((data[owner]||{})[EVT_MODAL_DATE]||[])[idx];
+  if(!e) return;
+  EVT_EDIT_TARGET={owner,idx};
+  // Pre-fill form
+  document.getElementById('evmTitleInp').value=e.title||'';
+  document.getElementById('evmTimeInp').value=e.time||'';
+  document.getElementById('evmHoursInp').value=e.hours||'';
+  document.getElementById('evmTypeInp').value=e.type||'Training';
+  document.getElementById('evmSessionInp').value=e.session||'Online';
+  document.getElementById('evmNotesInp').value=e.notes||'';
+  document.getElementById('evmFormLbl').textContent='✏️ Edit Event';
+  document.getElementById('evmSaveBtn').textContent='Update Event';
+  document.getElementById('evmCancelBtn').style.display='';
+  document.getElementById('evmTitleInp').focus();
+}
+
+function cancelEdit(){
+  EVT_EDIT_TARGET=null;
+  document.getElementById('evmTitleInp').value='';
+  document.getElementById('evmTimeInp').value='';
+  document.getElementById('evmHoursInp').value='';
+  document.getElementById('evmTypeInp').value='Training';
+  document.getElementById('evmSessionInp').value='Online';
+  document.getElementById('evmNotesInp').value='';
+  document.getElementById('evmFormLbl').textContent='＋ Add Event';
+  document.getElementById('evmSaveBtn').textContent='Add Event';
+  document.getElementById('evmCancelBtn').style.display='none';
+}
 
 function saveEvt(){
   const titleEl=document.getElementById('evmTitleInp');
   const title=(titleEl?.value||'').trim();
   if(!title){if(titleEl)titleEl.style.borderColor='var(--red)';return;}
   const time=document.getElementById('evmTimeInp')?.value||'';
+  const hoursRaw=parseFloat(document.getElementById('evmHoursInp')?.value||'0');
+  const hours=isNaN(hoursRaw)||hoursRaw<=0?0:hoursRaw;
   const type=document.getElementById('evmTypeInp')?.value||'Training';
+  const session=document.getElementById('evmSessionInp')?.value||'Online';
   const notes=(document.getElementById('evmNotesInp')?.value||'').trim();
+
   const data=getCalData();
-  if(!data[CAL_OWNER]) data[CAL_OWNER]={};
-  if(!data[CAL_OWNER][EVT_MODAL_DATE]) data[CAL_OWNER][EVT_MODAL_DATE]=[];
-  data[CAL_OWNER][EVT_MODAL_DATE].push({id:Date.now().toString(36),title,time,type,notes});
-  saveCalData(data);
+
+  if(EVT_EDIT_TARGET){
+    // UPDATE existing event
+    const {owner,idx}=EVT_EDIT_TARGET;
+    const evts=(data[owner]||{})[EVT_MODAL_DATE]||[];
+    const oldEvt=evts[idx];
+    if(!oldEvt) return;
+    const oldId=oldEvt.id;
+    evts[idx]={...oldEvt,title,time,hours,type,session,notes};
+    data[owner][EVT_MODAL_DATE]=evts;
+    saveCalData(data);
+    // Update dashboard log: remove old entry, add updated one
+    let logs=getLogs().filter(l=>l.plannerEventId!==oldId);
+    if(hours>0){
+      const trainer=CAL_OWNER_TRAINER[owner]||owner;
+      const month=dateToMonth(EVT_MODAL_DATE);
+      const actType=CAL_TYPE_TO_ACT[type]||'Other';
+      logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:oldId});
+    }
+    saveLogs(logs);
+    buildDash();buildProgress();
+  } else {
+    // ADD new event
+    const evtId=Date.now().toString(36);
+    if(!data[CAL_OWNER]) data[CAL_OWNER]={};
+    if(!data[CAL_OWNER][EVT_MODAL_DATE]) data[CAL_OWNER][EVT_MODAL_DATE]=[];
+    data[CAL_OWNER][EVT_MODAL_DATE].push({id:evtId,title,time,hours,type,session,notes});
+    saveCalData(data);
+    if(hours>0){
+      const trainer=CAL_OWNER_TRAINER[CAL_OWNER]||CAL_OWNER;
+      const month=dateToMonth(EVT_MODAL_DATE);
+      const actType=CAL_TYPE_TO_ACT[type]||'Other';
+      const logs=getLogs();
+      logs.push({month,type:actType,details:notes||title,trainer,session,topic:title,hours,start:EVT_MODAL_DATE,end:'—',plannerEventId:evtId});
+      saveLogs(logs);
+      buildDash();buildProgress();
+    }
+  }
+
   openEvtModal(EVT_MODAL_DATE);
   renderCal();
 }
 
-function delEvt(idx){
+function delEvt(owner, idx){
   if(!confirm('Delete this event?')) return;
   const data=getCalData();
-  const evts=((data[CAL_OWNER]||{})[EVT_MODAL_DATE])||[];
+  const evts=((data[owner]||{})[EVT_MODAL_DATE])||[];
+  const evtId=evts[idx]?.id;
   evts.splice(idx,1);
-  if(evts.length===0) delete data[CAL_OWNER][EVT_MODAL_DATE];
-  else data[CAL_OWNER][EVT_MODAL_DATE]=evts;
+  if(evts.length===0) delete data[owner][EVT_MODAL_DATE];
+  else data[owner][EVT_MODAL_DATE]=evts;
   saveCalData(data);
+
+  if(evtId){
+    const logs=getLogs().filter(l=>l.plannerEventId!==evtId);
+    saveLogs(logs);
+    buildDash();buildProgress();
+  }
+
   openEvtModal(EVT_MODAL_DATE);
   renderCal();
 }
