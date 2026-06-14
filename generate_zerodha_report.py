@@ -290,30 +290,25 @@ for idx, m in enumerate(active_months):
     row = 19 + idx
     bg = WHITE if idx % 2 == 0 else ALT_ROW
     
-    # Merge Month Name (B to C)
-    ws_dash.merge_cells(start_row=row, start_column=2, end_row=row, end_column=3)
+    # Month Name (B to C unmerged)
     ws_dash.cell(row=row, column=2, value=m)
     style_range(ws_dash, f"B{row}:C{row}", fill_=fill(bg), font_=font("1F2937", bold=True, size=9), align_=align("left", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
     
-    # Trainer values
+    # Trainer values (unmerged)
     tr_cols = [4, 6, 8, 10, 12]  # D, F, H, J, L
     for col_idx, trainer in zip(tr_cols, TRAINERS):
-        ws_dash.merge_cells(start_row=row, start_column=col_idx, end_row=row, end_column=col_idx+1)
         c_letter = get_column_letter(col_idx)
         c_letter2 = get_column_letter(col_idx+1)
         cell = ws_dash.cell(row=row, column=col_idx)
         cell.value = f'=SUMIFS(Data!$I$2:$I$200,Data!$A$2:$A$200,"{m}",Data!$F$2:$F$200,"*{trainer.split()[0]}*")'
         style_range(ws_dash, f"{c_letter}{row}:{c_letter2}{row}", fill_=fill(bg), font_=font("1F2937", size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
         cell.number_format = "0.00"
-        ws_dash.cell(row=row, column=col_idx+1).number_format = "0.00"
         
-    # Grand Total (N to O)
-    ws_dash.merge_cells(start_row=row, start_column=14, end_row=row, end_column=15)
+    # Grand Total (N to O unmerged)
     cell_gt = ws_dash.cell(row=row, column=14)
     cell_gt.value = f"=SUM(D{row},F{row},H{row},J{row},L{row})"
     style_range(ws_dash, f"N{row}:O{row}", fill_=fill(bg), font_=font("7B61FF", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
     cell_gt.number_format = "0.00"
-    ws_dash.cell(row=row, column=15).number_format = "0.00"
 
 # ── Update Complete Activity Log (FILTER formulas) ──────────────────────────
 log_start_row = 61 + diff
