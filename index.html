@@ -978,116 +978,13 @@ function renderKRAEditor() {
 }
 
 // ====== EXCEL DOWNLOAD ======
-function downloadDashboardExcelInternal() {
-  if(typeof XLSX==='undefined'){alert('XLSX library not loaded yet, please try again.');return;}
-  const mhrs=getAllMonthlyHours();
-  const acts=getAllActs();
-  const wb=XLSX.utils.book_new();
-
-  // Sheet 1: Monthly Hours Summary
-  const summaryRows=[['Month',...TRAINERS,'Total']];
-  MONTHS_ORDER.forEach(m=>{
-    if(!mhrs[m]) return;
-    const row=[m,...TRAINERS.map(t=>(mhrs[m][t]||0))];
-    row.push(TRAINERS.reduce((s,t)=>s+(mhrs[m][t]||0),0));
-    summaryRows.push(row);
-  });
-  // Totals row
-  const totRow=['TOTAL',...TRAINERS.map(t=>MONTHS_ORDER.reduce((s,m)=>s+((mhrs[m]||{})[t]||0),0))];
-  totRow.push(totRow.slice(1).reduce((a,b)=>a+b,0));
-  summaryRows.push(totRow);
-  const ws1=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws1['!cols']=[{wch:18},...TRAINERS.map(()=>({wch:14})),{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Monthly Hours Summary');
-
-  // Sheet 2+: One sheet per month (Activity Log)
-  const monthsWithActs=[...new Set(acts.map(a=>a.month))].sort((a,b)=>MONTHS_ORDER.indexOf(a)-MONTHS_ORDER.indexOf(b));
-  monthsWithActs.forEach(m=>{
-    const rows=acts.filter(a=>a.month===m);
-    if(!rows.length) return;
-    const header=['Month','Type','Details','Trainer','Session','Topic','Hours','Start','End'];
-    const data=[header,...rows.map(r=>[r.month,r.type,r.details,r.trainer,r.session,r.topic,r.hours,r.start||'',r.end||''])];
-    const ws=XLSX.utils.aoa_to_sheet(data);
-    ws['!cols']=[{wch:14},{wch:20},{wch:24},{wch:22},{wch:10},{wch:28},{wch:8},{wch:10},{wch:10}];
-    const shName=m.split(' ')[0].substring(0,3)+(m.includes('2025')?' 25':' 26');
-    XLSX.utils.book_append_sheet(wb,ws,shName);
-  });
-
-  XLSX.writeFile(wb,'Zerodha_Trainer_Dashboard_'+new Date().toISOString().slice(0,10)+'.xlsx');
-}
-
 function downloadDashboardExcel() {
-  const relativeReportPath = './Zerodha_Training_Dashboard.xlsx';
-
-  let modal = document.getElementById('excel-download-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'excel-download-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(12,13,20,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;color:#e8eaf6;';
-    
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        const m = document.getElementById('excel-download-modal');
-        if (m) m.style.display = 'none';
-      }
-    });
-
-    modal.innerHTML = `
-      <div style="background:#13141f;border:1px solid #2a2c42;border-radius:16px;width:100%;max-width:540px;padding:28px;position:relative;box-shadow:0 20px 40px rgba(0,0,0,0.55);animation:excelSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);box-sizing:border-box;">
-        <button onclick="document.getElementById('excel-download-modal').style.display='none'" style="position:absolute;top:20px;right:20px;background:none;border:none;color:#9098b8;font-size:20px;cursor:pointer;line-height:1;transition:color 0.15s;" onmouseover="this.style.color='#00e5c3'" onmouseout="this.style.color='#9098b8'">✕</button>
-        <h3 style="margin:0 0 6px 0;font-size:19px;font-weight:700;color:#00e5c3;display:flex;align-items:center;gap:8px;font-family:inherit;">⬇️ Download Excel Dashboard</h3>
-        <p style="margin:0 0 24px 0;font-size:12.5px;color:#9098b8;line-height:1.4;font-family:inherit;">Choose your preferred Excel format to download the trainer analytics.</p>
-        
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <!-- OPTION A: STYLED NEW EXCEL -->
-          <div style="background:#1a1b2e;border:1px solid #2a2c42;border-radius:12px;padding:18px;transition:all 0.2s;" onmouseover="this.style.borderColor='#00e5c3';this.style.backgroundColor='#22243a'" onmouseout="this.style.borderColor='#2a2c42';this.style.backgroundColor='#1a1b2e'">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <strong style="font-size:14.5px;color:#e8eaf6;font-family:inherit;">Option 1: New Styled Excel Sheet</strong>
-              <span style="background:rgba(0,229,195,0.1);color:#00e5c3;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;font-family:inherit;">With Charts</span>
-            </div>
-            <p style="margin:0 0 14px 0;font-size:11.5px;color:#9098b8;line-height:1.45;font-family:inherit;">
-              Get the exact copy matching the master template. Contains the correct Calibri fonts, hidden gridlines, formulas, customized coloring, and all 3 visual charts.
-            </p>
-            <div style="background:#0c0d14;border:1px solid #2a2c42;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-family:monospace;font-size:11px;color:#ff6b35;line-height:1.45;word-break:break-all;">
-              <span style="color:#9098b8;">To refresh data, run the script in terminal:</span><br/>
-              <span style="color:#00e5c3;">python3</span> generate_zerodha_report.py
-            </div>
-            <a id="excel-styled-dl-link" href="" onclick="document.getElementById('excel-download-modal').style.display='none'" style="display:inline-flex;align-items:center;justify-content:center;background:#00e5c3;color:#0c0d14;text-decoration:none;font-weight:700;font-size:13px;padding:10px 16px;border-radius:8px;transition:opacity 0.15s;width:100%;box-sizing:border-box;font-family:inherit;text-align:center;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-              ⬇️ Download Styled Excel Sheet
-            </a>
-          </div>
-          
-          <!-- OPTION B: SIMPLE EXPORT -->
-          <div style="background:#1a1b2e;border:1px solid #2a2c42;border-radius:12px;padding:18px;transition:all 0.2s;" onmouseover="this.style.borderColor='#ff6b35';this.style.backgroundColor='#22243a'" onmouseout="this.style.borderColor='#2a2c42';this.style.backgroundColor='#1a1b2e'">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <strong style="font-size:14.5px;color:#e8eaf6;font-family:inherit;">Option 2: Simple Browser Export</strong>
-              <span style="background:rgba(255,107,53,0.1);color:#ff6b35;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;font-family:inherit;">Raw Data</span>
-            </div>
-            <p style="margin:0 0 14px 0;font-size:11.5px;color:#9098b8;line-height:1.45;font-family:inherit;">
-              Generates a simple Excel file directly from the browser's current view. Note: Client-side exports do not support charts, gridline preferences, or formulas due to browser security limitations.
-            </p>
-            <button onclick="document.getElementById('excel-download-modal').style.display='none'; downloadDashboardExcelInternal();" style="display:inline-flex;align-items:center;justify-content:center;background:none;border:1px solid #ff6b35;color:#ff6b35;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px;cursor:pointer;transition:all 0.15s;width:100%;box-sizing:border-box;font-family:inherit;" onmouseover="this.style.background='rgba(255,107,53,0.1)'" onmouseout="this.style.background='none'">
-              ⬇️ Export Simple Tables (Browser)
-            </button>
-          </div>
-        </div>
-      </div>
-      <style>
-        @keyframes excelSlideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      </style>
-    `;
-    document.body.appendChild(modal);
-  }
-  
-  const styledLink = document.getElementById('excel-styled-dl-link');
-  if (styledLink) {
-    styledLink.href = relativeReportPath;
-  }
-  
-  modal.style.display = 'flex';
+  const link = document.createElement('a');
+  link.href = './Zerodha_Training_Dashboard.xlsx';
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // ====== MONTHLY PLANNER ======
@@ -1250,6 +1147,5 @@ function delEvt(idx){
   renderCal();
 }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
