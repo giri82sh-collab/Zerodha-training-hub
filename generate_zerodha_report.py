@@ -175,6 +175,8 @@ all_acts   = [a for a in all_acts if a.get("month") in report_set]
 all_acts.sort(key=lambda a: MONTHS_ORDER.index(a.get("month", MONTHS_ORDER[-1]))
               if a.get("month") in MONTHS_ORDER else 99)
 
+DATA_MAX_ROW = max(1000, len(all_acts) + 100)
+
 tr_mhrs    = parse_tr_monthly()
 
 # Build monthly hours (TR base + log additions)
@@ -252,17 +254,17 @@ ws_dash["A3"].value = f"Training Activity Dashboard   |   {MONTHS_ORDER[0]} – 
 # Filter cell default
 ws_dash["D6"].value = "All Months"
 
-# Update KPI card formulas to expand range to 1000 rows
-ws_dash["B9"] = '=IF($D$6="All Months",COUNTA(Data!$A$2:$A$1000),COUNTIF(Data!$A$2:$A$1000,$D$6))'
-ws_dash["D9"] = '=IF($D$6="All Months",SUM(Data!$I$2:$I$1000),SUMIF(Data!$A$2:$A$1000,$D$6,Data!$I$2:$I$1000))'
-ws_dash["F9"] = '=IF($D$6="All Months",SUMIF(Data!$G$2:$G$1000,"Online",Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*(Data!$G$2:$G$1000="Online")*Data!$I$2:$I$1000))'
-ws_dash["H9"] = '=IF($D$6="All Months",SUMIF(Data!$G$2:$G$1000,"Offline",Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*(Data!$G$2:$G$1000="Offline")*Data!$I$2:$I$1000))'
+# Update KPI card formulas to expand range dynamically
+ws_dash["B9"] = f'=IF($D$6="All Months",COUNTA(Data!$A$2:$A${DATA_MAX_ROW}),COUNTIF(Data!$A$2:$A${DATA_MAX_ROW},$D$6))'
+ws_dash["D9"] = f'=IF($D$6="All Months",SUM(Data!$I$2:$I${DATA_MAX_ROW}),SUMIF(Data!$A$2:$A${DATA_MAX_ROW},$D$6,Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["F9"] = f'=IF($D$6="All Months",SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Online",Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Online")*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["H9"] = f'=IF($D$6="All Months",SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Offline",Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Offline")*Data!$I$2:$I${DATA_MAX_ROW}))'
 
-ws_dash["B13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
-ws_dash["D13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Raju",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Raju",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
-ws_dash["F13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Freeda",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Freeda",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
-ws_dash["H13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Harish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Harish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
-ws_dash["J13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Girish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Girish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+ws_dash["B13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["D13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Raju",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Raju",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["F13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["H13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["J13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
 
 # Row resizing calculations for active months
 active_months = [m for m in MONTHS_ORDER if m in mhrs]
@@ -312,7 +314,7 @@ for idx, m in enumerate(active_months):
         c_letter = get_column_letter(col_idx)
         c_letter2 = get_column_letter(col_idx+1)
         cell = ws_dash.cell(row=row, column=col_idx)
-        cell.value = f'=SUMIFS(Data!$I$2:$I$1000,Data!$A$2:$A$1000,"{m}",Data!$F$2:$F$1000,"*{trainer.split()[0]}*")'
+        cell.value = f'=SUMIFS(Data!$I$2:$I${DATA_MAX_ROW},Data!$A$2:$A${DATA_MAX_ROW},"{m}",Data!$F$2:$F${DATA_MAX_ROW},"*{trainer.split()[0]}*")'
         style_range(ws_dash, f"{c_letter}{row}:{c_letter2}{row}", fill_=fill(bg), font_=font("1F2937", size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
         cell.number_format = "0.00"
         
@@ -329,24 +331,25 @@ print(f"Updating Activity Log formulas at row {log_start_row}…")
 # Formulas for each column in the first row of the log table
 # Note: we use _xlfn.FILTER so Excel evaluates the modern dynamic array FILTER formula correctly.
 log_formulas = {
-    "B": '=IFERROR(_xlfn.FILTER(Data!$A$2:$A$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "C": '=IFERROR(_xlfn.FILTER(Data!$B$2:$B$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "E": '=IFERROR(_xlfn.FILTER(Data!$C$2:$C$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "G": '=IFERROR(_xlfn.FILTER(Data!$D$2:$D$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "H": '=IFERROR(_xlfn.FILTER(Data!$E$2:$E$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "J": '=IFERROR(_xlfn.FILTER(Data!$F$2:$F$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "L": '=IFERROR(_xlfn.FILTER(Data!$G$2:$G$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "N": '=IFERROR(_xlfn.FILTER(Data!$H$2:$H$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")',
-    "Q": '=IFERROR(_xlfn.FILTER(Data!$I$2:$I$1000, ((Data!$A$2:$A$1000=$D$6)+($D$6="All Months")) * (Data!$A$2:$A$1000<>"")), "")'
+    "B": f'=IFERROR(_xlfn.FILTER(Data!$A$2:$A${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "C": f'=IFERROR(_xlfn.FILTER(Data!$B$2:$B${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "E": f'=IFERROR(_xlfn.FILTER(Data!$C$2:$C${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "G": f'=IFERROR(_xlfn.FILTER(Data!$D$2:$D${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "H": f'=IFERROR(_xlfn.FILTER(Data!$E$2:$E${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "J": f'=IFERROR(_xlfn.FILTER(Data!$F$2:$F${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "L": f'=IFERROR(_xlfn.FILTER(Data!$G$2:$G${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "N": f'=IFERROR(_xlfn.FILTER(Data!$H$2:$H${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
+    "Q": f'=IFERROR(_xlfn.FILTER(Data!$I$2:$I${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")'
 }
 
 # Write formulas to the first row of the log
 for col_let, formula in log_formulas.items():
     ws_dash[f"{col_let}{log_start_row}"] = formula
 
-# Clear all values below the first row of the log, and format all log rows (log_start_row to log_start_row + 300)
+# Clear all values below the first row of the log, and format all log rows
 # to have a clean, plain white background and consistent dark text.
-for r in range(log_start_row, log_start_row + 301):
+log_rows_count = max(300, len(all_acts) + 50)
+for r in range(log_start_row, log_start_row + log_rows_count + 1):
     bg_color = "FFFFFF"
     for c in range(2, 19): # Cols B to R
         cell = ws_dash.cell(row=r, column=c)
@@ -389,7 +392,7 @@ for i, m in enumerate(active_months):
     for j, t in enumerate(TRAINERS):
         ws_cd.cell(row=row, column=j+2).value = (
             f'=IF(OR(Dashboard!$D$6="All Months",Dashboard!$D$6="{m}"),'
-            f'SUMPRODUCT((Data!$A$2:$A$1000="{m}")*ISNUMBER(SEARCH("{t.split()[0]}",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),0)'
+            f'SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}="{m}")*ISNUMBER(SEARCH("{t.split()[0]}",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),0)'
         )
 
 # 2. Write session type breakdown (Online vs Offline)
@@ -400,15 +403,15 @@ ws_cd.cell(row=row_session, column=2, value="Hours")
 ws_cd.cell(row=row_session+1, column=1, value="Online")
 ws_cd.cell(row=row_session+1, column=2, value=(
     f'=IF(Dashboard!$D$6="All Months",'
-    f'SUMIF(Data!$G$2:$G$1000,"Online",Data!$I$2:$I$1000),'
-    f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$G$2:$G$1000="Online")*Data!$I$2:$I$1000))'
+    f'SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Online",Data!$I$2:$I${DATA_MAX_ROW}),'
+    f'SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=Dashboard!$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Online")*Data!$I$2:$I${DATA_MAX_ROW}))'
 ))
 
 ws_cd.cell(row=row_session+2, column=1, value="Offline")
 ws_cd.cell(row=row_session+2, column=2, value=(
     f'=IF(Dashboard!$D$6="All Months",'
-    f'SUMIF(Data!$G$2:$G$1000,"Offline",Data!$I$2:$I$1000),'
-    f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$G$2:$G$1000="Offline")*Data!$I$2:$I$1000))'
+    f'SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Offline",Data!$I$2:$I${DATA_MAX_ROW}),'
+    f'SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=Dashboard!$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Offline")*Data!$I$2:$I${DATA_MAX_ROW}))'
 ))
 
 # 3. Write activity breakdown
@@ -422,8 +425,8 @@ for idx, (act, _) in enumerate(all_types_sorted):
     ws_cd.cell(row=r, column=1, value=act)
     ws_cd.cell(row=r, column=2, value=(
         f'=IF(Dashboard!$D$6="All Months",'
-        f'SUMIF(Data!$B$2:$B$1000,"{act}",Data!$I$2:$I$1000),'
-        f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$B$2:$B$1000="{act}")*Data!$I$2:$I$1000))'
+        f'SUMIF(Data!$B$2:$B${DATA_MAX_ROW},"{act}",Data!$I$2:$I${DATA_MAX_ROW}),'
+        f'SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=Dashboard!$D$6)*(Data!$B$2:$B${DATA_MAX_ROW}="{act}")*Data!$I$2:$I${DATA_MAX_ROW}))'
     ))
 
 # ── RE-CREATE CHARTS ──────────────────────────────────────────────────────────
