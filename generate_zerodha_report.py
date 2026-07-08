@@ -345,9 +345,9 @@ for col_let, formula in log_formulas.items():
     ws_dash[f"{col_let}{log_start_row}"] = formula
 
 # Clear all values below the first row of the log, and format all log rows (log_start_row to log_start_row + 300)
-# to have a clean, plain alternating white/gray background and consistent dark text.
+# to have a clean, plain white background and consistent dark text.
 for r in range(log_start_row, log_start_row + 301):
-    bg_color = "F5F7FA" if r % 2 == 1 else "FFFFFF"
+    bg_color = "FFFFFF"
     for c in range(2, 19): # Cols B to R
         cell = ws_dash.cell(row=r, column=c)
         cell.fill = fill(bg_color)
