@@ -344,11 +344,29 @@ log_formulas = {
 for col_let, formula in log_formulas.items():
     ws_dash[f"{col_let}{log_start_row}"] = formula
 
-# Clear all values and formulas below the first row of the log (up to row log_start_row + 300)
-# to allow the FILTER dynamic array to spill downwards without blocking.
-for r in range(log_start_row + 1, log_start_row + 301):
+# Clear all values below the first row of the log, and format all log rows (log_start_row to log_start_row + 300)
+# to have a clean, plain alternating white/gray background and consistent dark text.
+for r in range(log_start_row, log_start_row + 301):
+    bg_color = "F5F7FA" if r % 2 == 1 else "FFFFFF"
     for c in range(2, 19): # Cols B to R
-        ws_dash.cell(row=r, column=c).value = None
+        cell = ws_dash.cell(row=r, column=c)
+        cell.fill = fill(bg_color)
+        cell.font = font("37474F", size=9)
+        
+        # Determine alignment
+        if c in [2, 7, 8, 9, 12, 13]: # Month, Start Date, Completed, Session
+            al = align("center", "center")
+        elif c in [17, 18]: # Man Hours
+            al = align("right", "center")
+        else: # Type, Details, Trainer, Topic
+            al = align("left", "center")
+            
+        cell.alignment = al
+        cell.border = thin_border("FFFFFF")
+        
+        # Clear value for rows below the first log row
+        if r > log_start_row:
+            cell.value = None
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SHEET 3 — CD (Chart Data helper)
