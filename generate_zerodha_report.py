@@ -252,6 +252,18 @@ ws_dash["A3"].value = f"Training Activity Dashboard   |   {MONTHS_ORDER[0]} – 
 # Filter cell default
 ws_dash["D6"].value = "All Months"
 
+# Update KPI card formulas to expand range to 1000 rows
+ws_dash["B9"] = '=IF($D$6="All Months",COUNTA(Data!$A$2:$A$1000),COUNTIF(Data!$A$2:$A$1000,$D$6))'
+ws_dash["D9"] = '=IF($D$6="All Months",SUM(Data!$I$2:$I$1000),SUMIF(Data!$A$2:$A$1000,$D$6,Data!$I$2:$I$1000))'
+ws_dash["F9"] = '=IF($D$6="All Months",SUMIF(Data!$G$2:$G$1000,"Online",Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*(Data!$G$2:$G$1000="Online")*Data!$I$2:$I$1000))'
+ws_dash["H9"] = '=IF($D$6="All Months",SUMIF(Data!$G$2:$G$1000,"Offline",Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*(Data!$G$2:$G$1000="Offline")*Data!$I$2:$I$1000))'
+
+ws_dash["B13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+ws_dash["D13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Raju",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Raju",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+ws_dash["F13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Freeda",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Freeda",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+ws_dash["H13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Harish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Harish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+ws_dash["J13"] = '=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Girish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),SUMPRODUCT((Data!$A$2:$A$1000=$D$6)*ISNUMBER(SEARCH("Girish",Data!$F$2:$F$1000))*Data!$I$2:$I$1000))'
+
 # Row resizing calculations for active months
 active_months = [m for m in MONTHS_ORDER if m in mhrs]
 num_active = len(active_months)
@@ -300,7 +312,7 @@ for idx, m in enumerate(active_months):
         c_letter = get_column_letter(col_idx)
         c_letter2 = get_column_letter(col_idx+1)
         cell = ws_dash.cell(row=row, column=col_idx)
-        cell.value = f'=SUMIFS(Data!$I$2:$I$200,Data!$A$2:$A$200,"{m}",Data!$F$2:$F$200,"*{trainer.split()[0]}*")'
+        cell.value = f'=SUMIFS(Data!$I$2:$I$1000,Data!$A$2:$A$1000,"{m}",Data!$F$2:$F$1000,"*{trainer.split()[0]}*")'
         style_range(ws_dash, f"{c_letter}{row}:{c_letter2}{row}", fill_=fill(bg), font_=font("1F2937", size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
         cell.number_format = "0.00"
         
@@ -359,7 +371,7 @@ for i, m in enumerate(active_months):
     for j, t in enumerate(TRAINERS):
         ws_cd.cell(row=row, column=j+2).value = (
             f'=IF(OR(Dashboard!$D$6="All Months",Dashboard!$D$6="{m}"),'
-            f'SUMPRODUCT((Data!$A$2:$A$200="{m}")*ISNUMBER(SEARCH("{t.split()[0]}",Data!$F$2:$F$200))*Data!$I$2:$I$200),0)'
+            f'SUMPRODUCT((Data!$A$2:$A$1000="{m}")*ISNUMBER(SEARCH("{t.split()[0]}",Data!$F$2:$F$1000))*Data!$I$2:$I$1000),0)'
         )
 
 # 2. Write session type breakdown (Online vs Offline)
@@ -370,15 +382,15 @@ ws_cd.cell(row=row_session, column=2, value="Hours")
 ws_cd.cell(row=row_session+1, column=1, value="Online")
 ws_cd.cell(row=row_session+1, column=2, value=(
     f'=IF(Dashboard!$D$6="All Months",'
-    f'SUMIF(Data!$G$2:$G$200,"Online",Data!$I$2:$I$200),'
-    f'SUMPRODUCT((Data!$A$2:$A$200=Dashboard!$D$6)*(Data!$G$2:$G$200="Online")*Data!$I$2:$I$200))'
+    f'SUMIF(Data!$G$2:$G$1000,"Online",Data!$I$2:$I$1000),'
+    f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$G$2:$G$1000="Online")*Data!$I$2:$I$1000))'
 ))
 
 ws_cd.cell(row=row_session+2, column=1, value="Offline")
 ws_cd.cell(row=row_session+2, column=2, value=(
     f'=IF(Dashboard!$D$6="All Months",'
-    f'SUMIF(Data!$G$2:$G$200,"Offline",Data!$I$2:$I$200),'
-    f'SUMPRODUCT((Data!$A$2:$A$200=Dashboard!$D$6)*(Data!$G$2:$G$200="Offline")*Data!$I$2:$I$200))'
+    f'SUMIF(Data!$G$2:$G$1000,"Offline",Data!$I$2:$I$1000),'
+    f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$G$2:$G$1000="Offline")*Data!$I$2:$I$1000))'
 ))
 
 # 3. Write activity breakdown
@@ -392,8 +404,8 @@ for idx, (act, _) in enumerate(all_types_sorted):
     ws_cd.cell(row=r, column=1, value=act)
     ws_cd.cell(row=r, column=2, value=(
         f'=IF(Dashboard!$D$6="All Months",'
-        f'SUMIF(Data!$B$2:$B$200,"{act}",Data!$I$2:$I$200),'
-        f'SUMPRODUCT((Data!$A$2:$A$200=Dashboard!$D$6)*(Data!$B$2:$B$200="{act}")*Data!$I$2:$I$200))'
+        f'SUMIF(Data!$B$2:$B$1000,"{act}",Data!$I$2:$I$1000),'
+        f'SUMPRODUCT((Data!$A$2:$A$1000=Dashboard!$D$6)*(Data!$B$2:$B$1000="{act}")*Data!$I$2:$I$1000))'
     ))
 
 # ── RE-CREATE CHARTS ──────────────────────────────────────────────────────────
