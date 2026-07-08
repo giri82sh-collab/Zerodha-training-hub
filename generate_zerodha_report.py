@@ -470,11 +470,22 @@ for month_name in MONTHS_ORDER:
         continue
     ws = wb[month_name]
     
+    # Clear merged ranges that are at or below row 7 (e.g., A7:I7 placeholder)
+    ranges_to_remove = []
+    for r in list(ws.merged_cells.ranges):
+        if r.min_row >= 7:
+            ranges_to_remove.append(r)
+    for r in ranges_to_remove:
+        ws.merged_cells.remove(r)
+        
     # Clear old logs
     if ws.max_row >= 7:
         ws.delete_rows(7, ws.max_row - 6)
         
     acts = [a for a in all_acts if a.get("month") == month_name]
+    
+    # Set sheet visibility based on whether it has activities
+    ws.sheet_state = "visible" if acts else "hidden"
     
     if acts:
         # Write rows

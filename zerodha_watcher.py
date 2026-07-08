@@ -13,8 +13,10 @@ import hashlib
 import sys
 
 FIREBASE_URL = "https://zerodha-training-hub-default-rtdb.firebaseio.com/zh_logs.json"
-SCRIPT_PATH  = "/Users/girisha/Desktop/Zerodha-training-hub/generate_zerodha_report.py"
-LOG_PATH     = "/Users/girisha/Desktop/Zerodha-training-hub/watcher.log"
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_PATH  = os.path.join(BASE_DIR, "generate_zerodha_report.py")
+LOG_PATH     = os.path.join(BASE_DIR, "watcher.log")
 
 def log_msg(msg):
     t = time.strftime('%Y-%m-%d %H:%M:%S')
