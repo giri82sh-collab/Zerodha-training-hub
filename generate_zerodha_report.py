@@ -324,35 +324,41 @@ for idx, m in enumerate(active_months):
     style_range(ws_dash, f"N{row}:O{row}", fill_=fill(bg), font_=font("7B61FF", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
     cell_gt.number_format = "0.00"
 
-# ── Update Complete Activity Log (FILTER formulas) ──────────────────────────
+# ── Update Complete Activity Log (Static Values + AutoFilter) ────────────────
 log_start_row = 61 + diff
-print(f"Updating Activity Log formulas at row {log_start_row}…")
+print(f"Updating Activity Log static values at row {log_start_row}…")
 
-# Formulas for each column in the first row of the log table
-# Note: we use _xlfn.FILTER so Excel evaluates the modern dynamic array FILTER formula correctly.
-log_formulas = {
-    "B": f'=IFERROR(_xlfn.FILTER(Data!$A$2:$A${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "C": f'=IFERROR(_xlfn.FILTER(Data!$B$2:$B${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "E": f'=IFERROR(_xlfn.FILTER(Data!$C$2:$C${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "G": f'=IFERROR(_xlfn.FILTER(Data!$D$2:$D${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "H": f'=IFERROR(_xlfn.FILTER(Data!$E$2:$E${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "J": f'=IFERROR(_xlfn.FILTER(Data!$F$2:$F${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "L": f'=IFERROR(_xlfn.FILTER(Data!$G$2:$G${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "N": f'=IFERROR(_xlfn.FILTER(Data!$H$2:$H${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")',
-    "Q": f'=IFERROR(_xlfn.FILTER(Data!$I$2:$I${DATA_MAX_ROW}, ((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)+($D$6="All Months")) * (Data!$A$2:$A${DATA_MAX_ROW}<>"")), "")'
-}
-
-# Write formulas to the first row of the log
-for col_let, formula in log_formulas.items():
-    ws_dash[f"{col_let}{log_start_row}"] = formula
-
-# Clear all values below the first row of the log, and format all log rows
-# to have a clean, plain white background and consistent dark text.
-log_rows_count = max(300, len(all_acts) + 50)
-for r in range(log_start_row, log_start_row + log_rows_count + 1):
+# Write static values for the activity log table
+for i, act in enumerate(all_acts):
+    row = log_start_row + i
     bg_color = "FFFFFF"
-    for c in range(2, 19): # Cols B to R
-        cell = ws_dash.cell(row=r, column=c)
+    
+    # We populate the exact columns B, C, E, G, H, J, L, N, Q with static values:
+    # Column B (2): Month
+    # Column C (3): Type
+    # Column E (5): Details
+    # Column G (7): Start Date
+    # Column H (8): Completed (End Date)
+    # Column J (10): Trainer
+    # Column L (12): Session
+    # Column N (14): Topic
+    # Column Q (17): Hours
+    
+    vals = {
+        2: act.get("month", ""),
+        3: act.get("type", ""),
+        5: act.get("details") or act.get("training_details", ""),
+        7: act.get("start") or act.get("date", ""),
+        8: act.get("end", ""),
+        10: act.get("trainer", ""),
+        12: act.get("session", ""),
+        14: act.get("topic", ""),
+        17: to_float(act.get("hours", 0)),
+    }
+    
+    # We clear and style all cells from column B (2) to R (18)
+    for c in range(2, 19):
+        cell = ws_dash.cell(row=row, column=c)
         cell.fill = fill(bg_color)
         cell.font = font("37474F", size=9)
         
@@ -367,9 +373,28 @@ for r in range(log_start_row, log_start_row + log_rows_count + 1):
         cell.alignment = al
         cell.border = thin_border("FFFFFF")
         
-        # Clear value for rows below the first log row
-        if r > log_start_row:
+        # Write value if it is one of our populated columns
+        if c in vals:
+            cell.value = vals[c]
+        else:
             cell.value = None
+            
+        # Format Hours
+        if c == 17 and isinstance(cell.value, (int, float)):
+            cell.number_format = "0.00"
+
+# Clear any remaining rows below our written activities to avoid leftover template rows
+for r in range(log_start_row + len(all_acts), log_start_row + len(all_acts) + 300):
+    for c in range(2, 19):
+        cell = ws_dash.cell(row=r, column=c)
+        cell.value = None
+        cell.fill = fill("FFFFFF")
+        cell.font = font("37474F", size=9)
+        cell.border = thin_border("FFFFFF")
+
+# Enable Excel AutoFilter dropdown on the table headers (row log_start_row - 1)
+# down to the end of our static data rows
+ws_dash.auto_filter.ref = f"B{log_start_row - 1}:Q{log_start_row + len(all_acts) - 1}"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SHEET 3 — CD (Chart Data helper)
