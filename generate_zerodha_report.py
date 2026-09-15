@@ -598,8 +598,14 @@ for month_name in MONTHS_ORDER:
         c_val.number_format = "0.00"
 
 # ── Save ────────────────────────────────────────────────────────────────────────
-wb.save(OUT_PATH)
-print(f"\n✅  Saved: {OUT_PATH}")
+# Desktop path only exists on someone's personal machine — skip it gracefully
+# when running headlessly (e.g. in CI/GitHub Actions).
+try:
+    os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
+    wb.save(OUT_PATH)
+    print(f"\n✅  Saved: {OUT_PATH}")
+except Exception as e:
+    print(f"\n⚠️  Skipped Desktop copy ({e})")
 
 # Save a sibling copy inside the project folder for local HTTP server downloads
 ALT_OUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Zerodha_Training_Dashboard.xlsx")
