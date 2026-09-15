@@ -1,1 +1,42 @@
+name: Regenerate Training Excel Report
 
+# Runs automatically every 15 minutes, and can also be triggered manually
+# from the Actions tab ("Run workflow" button) whenever you want an
+# immediate refresh instead of waiting for the schedule.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Regenerate report
+        run: python3 generate_zerodha_report.py
+
+      - name: Commit and push if the report changed
+        run: |
+          if [ -n "$(git status --porcelain Zerodha_Training_Dashboard.xlsx)" ]; then
+            git config user.name "training-hub-bot"
+            git config user.email "actions@github.com"
+            git add Zerodha_Training_Dashboard.xlsx
+            git commit -m "Auto-update Excel report [skip ci]"
+            git push
+          else
+            echo "No changes — report already up to date."
+          fi
