@@ -503,10 +503,21 @@ const TR = {"trainers":["Freeda Reshma Dsouza","Harish Bhat","Girish A"],"monthl
 const TRAINERS = TR.trainers;
 const COLORS_T = {'Gaurav Kumar':'#3b82f6','Raju Vernekar':'#00e5c3','Freeda Reshma Dsouza':'#f59e0b','Harish Bhat':'#ef4444','Girish A':'#a855f7'};
 const MONTHS_ORDER = ['December 2025','January 2026','February 2026','March 2026','April 2026','May 2026','June 2026','July 2026','August 2026','September 2026','October 2026','November 2026','December 2026'];
-// Dashboard & Excel only show data up to this month (change when next batch starts)
-const REPORT_END = 'August 2026';
-const REPORT_MONTHS = MONTHS_ORDER.slice(0, MONTHS_ORDER.indexOf(REPORT_END)+1);
-const REPORT_MONTHS_SET = new Set(REPORT_MONTHS);
+// Dashboard & Excel dynamically show all active months with logged data
+const REPORT_END = 'September 2026';
+function getReportMonths() {
+  const acts = getAllActs();
+  const mhrs = getAllMonthlyHours();
+  let maxIdx = MONTHS_ORDER.indexOf(REPORT_END);
+  MONTHS_ORDER.forEach((m, idx) => {
+    const hasActs = acts.some(a => a.month === m);
+    const hasHrs = mhrs[m] && Object.values(mhrs[m]).some(v => v > 0);
+    if (hasActs || hasHrs) maxIdx = Math.max(maxIdx, idx);
+  });
+  return MONTHS_ORDER.slice(0, Math.max(maxIdx, 0) + 1);
+}
+const REPORT_MONTHS = MONTHS_ORDER;
+const REPORT_MONTHS_SET = new Set(MONTHS_ORDER);
 const KRA_COLORS = ['#00e5c3','#ff6b35','#7c6af7','#f59e0b','#ef4444'];
 const ROLE_CFG_BASE = {
   admin:  {pw:'admin123',  tabs:['dash','prog','plan','ni','cal'], color:'#f59e0b', label:'Freeda (Admin)', trainer:'Freeda Reshma Dsouza'},
@@ -810,9 +821,10 @@ function swTab(name,btn) {
 
 // ====== DASHBOARD ======
 function buildDash() {
-  const acts = getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
+  const reportMonths = getReportMonths();
+  const acts = getAllActs().filter(a => MONTHS_ORDER.includes(a.month));
   const mhrs = getAllMonthlyHours();
-  const allMonths = REPORT_MONTHS.filter(m=>mhrs[m]&&Object.values(mhrs[m]).some(v=>v>0));
+  const allMonths = reportMonths.filter(m => mhrs[m] && Object.values(mhrs[m]).some(v => v > 0));
   const totalHrs = acts.reduce((s,a)=>s+a.hours,0);
   const onHrs = acts.filter(a=>a.session==='Online').reduce((s,a)=>s+a.hours,0);
   const offHrs = acts.filter(a=>a.session==='Offline').reduce((s,a)=>s+a.hours,0);
@@ -825,17 +837,19 @@ function buildDash() {
     ['Active Months',allMonths.length,'With logged data','#22c55e']
   ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
 
-  // Monthly stacked bar
-  const maxMT = Math.max(...REPORT_MONTHS.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
-  let mHtml = REPORT_MONTHS.filter(m=>mhrs[m]).map(m=>{
+  // Monthly stacked bar — summary displays August 2026 and September 2026
+  const dashSummaryMonths = ['August 2026', 'September 2026'];
+  const maxMT = Math.max(...dashSummaryMonths.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
+  let mHtml = dashSummaryMonths.filter(m=>mhrs[m]).map(m=>{
     const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
     if(!total) return '';
     const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
     const lbl=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');
     return `<div class="br"><div class="bl">${lbl}</div><div class="bt" style="height:20px;display:flex;gap:2px">${segs}</div><div class="bv">${total.toFixed(0)}h</div></div>`;
   }).join('');
-  const leg=Object.entries(COLORS_T).map(([t,c])=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx2)"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
-  document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">${leg}</div>`;
+  const allSummaryTrainers = ['Gaurav Kumar', 'Raju Vernekar', 'Freeda Reshma Dsouza', 'Harish Bhat', 'Girish A'];
+  const legHtml = allSummaryTrainers.map(t=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx1);font-weight:600"><span style="width:9px;height:9px;border-radius:2px;background:${COLORS_T[t]};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
+  document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px">${legHtml}</div>`;
 
   // Trainer totals
   const tTotals={};TRAINERS.forEach(t=>{tTotals[t]=acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+a.hours,0);});
@@ -850,16 +864,49 @@ function buildDash() {
   document.getElementById('atChart').innerHTML=top.map(([t,h],i)=>`<div class="br"><div class="bl" style="font-size:11px">${t}</div><div class="bt"><div class="bf" style="width:${(h/maxA*100).toFixed(1)}%;background:${acs[i%acs.length]}"></div></div><div class="bv">${h.toFixed(1)}h</div></div>`).join('');
   // Filters
   const fm=document.getElementById('fmth');const ft=document.getElementById('ftrn');const fty=document.getElementById('ftyp');
-  if(fm.options.length===1) {
-    REPORT_MONTHS.filter(m=>acts.some(a=>a.month===m)).forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');fm.appendChild(o);});
-    ['Freeda Reshma Dsouza','Girish A','Harish Bhat'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
-    [...new Set(acts.map(a=>a.type))].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
+  if(fm) {
+    const prevM = fm.value;
+    const monthsWithActs = reportMonths.filter(m=>acts.some(a=>a.month===m));
+    fm.innerHTML = '<option value="all">All Months</option>';
+    monthsWithActs.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m;
+      o.textContent=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');
+      fm.appendChild(o);
+    });
+    if([...fm.options].some(o=>o.value===prevM)) fm.value = prevM;
+  }
+  if(fty) {
+    const prevY = fty.value;
+    const allTypes = [...new Set(acts.map(a=>a.type))].sort();
+    fty.innerHTML = '<option value="all">All Types</option>';
+    allTypes.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;fty.appendChild(o);});
+    if([...fty.options].some(o=>o.value===prevY)) fty.value = prevY;
   }
   renderTable();
 }
 function renderTable() {
-  const fm=document.getElementById('fmth').value,ft=document.getElementById('ftrn').value,fty=document.getElementById('ftyp').value;
-  let rows=getAllActs().filter(a=>REPORT_MONTHS_SET.has(a.month));
+  const fmEl=document.getElementById('fmth');
+  const fm=fmEl?fmEl.value:'all';
+  const ftEl=document.getElementById('ftrn');
+  const prevT=ftEl?ftEl.value:'all';
+  if(ftEl) {
+    const isForward = (fm!=='all' && MONTHS_ORDER.indexOf(fm) >= MONTHS_ORDER.indexOf('September 2026'));
+    const tList = isForward ? ['Freeda Reshma Dsouza','Harish Bhat','Girish A'] : ['Freeda Reshma Dsouza','Harish Bhat','Girish A','Gaurav Kumar','Raju Vernekar'];
+    ftEl.innerHTML = '<option value="all">All Trainers</option>';
+    tList.forEach(t=>{
+      const o=document.createElement('option');
+      o.value=t;
+      o.textContent=t.split(' ')[0] + (!isForward && (t.startsWith('Gaurav')||t.startsWith('Raju')) ? ' (Historical)' : '');
+      ftEl.appendChild(o);
+    });
+    if([...ftEl.options].some(o=>o.value===prevT)) ftEl.value=prevT;
+    else ftEl.value='all';
+  }
+  const ft=ftEl?ftEl.value:'all';
+  const ftyEl=document.getElementById('ftyp');
+  const fty=ftyEl?ftyEl.value:'all';
+  let rows=getAllActs().filter(a=>MONTHS_ORDER.includes(a.month));
   if(fm!=='all') rows=rows.filter(r=>r.month===fm);
   if(ft!=='all') rows=rows.filter(r=>r.trainer&&r.trainer.includes(ft));
   if(fty!=='all') rows=rows.filter(r=>r.type===fty);
