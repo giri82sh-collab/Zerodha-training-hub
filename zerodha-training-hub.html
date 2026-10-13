@@ -837,18 +837,18 @@ function buildDash() {
     ['Active Months',allMonths.length,'With logged data','#22c55e']
   ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
 
-  // Monthly stacked bar — summary displays August 2026 and September 2026
+  // Monthly stacked bar — summary displays August 2026 and September 2026 for active trainers only
   const dashSummaryMonths = ['August 2026', 'September 2026'];
-  const maxMT = Math.max(...dashSummaryMonths.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
+  const activeTrainers = ['Freeda Reshma Dsouza', 'Harish Bhat', 'Girish A'];
+  const maxMT = Math.max(...dashSummaryMonths.map(m=>activeTrainers.reduce((s,t)=>(s+(mhrs[m]?.[t]||0)),0)),1);
   let mHtml = dashSummaryMonths.filter(m=>mhrs[m]).map(m=>{
-    const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
+    const data=mhrs[m]||{};const total=activeTrainers.reduce((s,t)=>s+(data[t]||0),0);
     if(!total) return '';
-    const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
+    const segs=activeTrainers.map(t=>{const c=COLORS_T[t];const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
     const lbl=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');
     return `<div class="br"><div class="bl">${lbl}</div><div class="bt" style="height:20px;display:flex;gap:2px">${segs}</div><div class="bv">${total.toFixed(0)}h</div></div>`;
   }).join('');
-  const allSummaryTrainers = ['Gaurav Kumar', 'Raju Vernekar', 'Freeda Reshma Dsouza', 'Harish Bhat', 'Girish A'];
-  const legHtml = allSummaryTrainers.map(t=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx1);font-weight:600"><span style="width:9px;height:9px;border-radius:2px;background:${COLORS_T[t]};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
+  const legHtml = activeTrainers.map(t=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx1);font-weight:600"><span style="width:9px;height:9px;border-radius:2px;background:${COLORS_T[t]};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
   document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px">${legHtml}</div>`;
 
   // Trainer totals
@@ -891,13 +891,12 @@ function renderTable() {
   const ftEl=document.getElementById('ftrn');
   const prevT=ftEl?ftEl.value:'all';
   if(ftEl) {
-    const isForward = (fm!=='all' && MONTHS_ORDER.indexOf(fm) >= MONTHS_ORDER.indexOf('September 2026'));
-    const tList = isForward ? ['Freeda Reshma Dsouza','Harish Bhat','Girish A'] : ['Freeda Reshma Dsouza','Harish Bhat','Girish A','Gaurav Kumar','Raju Vernekar'];
+    const tList = ['Freeda Reshma Dsouza','Harish Bhat','Girish A'];
     ftEl.innerHTML = '<option value="all">All Trainers</option>';
     tList.forEach(t=>{
       const o=document.createElement('option');
       o.value=t;
-      o.textContent=t.split(' ')[0] + (!isForward && (t.startsWith('Gaurav')||t.startsWith('Raju')) ? ' (Historical)' : '');
+      o.textContent=t.split(' ')[0];
       ftEl.appendChild(o);
     });
     if([...ftEl.options].some(o=>o.value===prevT)) ftEl.value=prevT;

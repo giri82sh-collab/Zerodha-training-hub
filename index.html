@@ -837,17 +837,19 @@ function buildDash() {
     ['Active Months',allMonths.length,'With logged data','#22c55e']
   ].map(([l,v,s,c])=>`<div class="kc" style="border-top-color:${c}"><div class="kl">${l}</div><div class="kv">${v}</div><div class="ks">${s}</div></div>`).join('');
 
-  // Monthly stacked bar
-  const maxMT = Math.max(...reportMonths.map(m=>Object.values(mhrs[m]||{}).reduce((s,v)=>s+v,0)),1);
-  let mHtml = reportMonths.filter(m=>mhrs[m]).map(m=>{
-    const data=mhrs[m]||{};const total=Object.values(data).reduce((s,v)=>s+v,0);
+  // Monthly stacked bar — summary displays August 2026 and September 2026 for active trainers only
+  const dashSummaryMonths = ['August 2026', 'September 2026'];
+  const activeTrainers = ['Freeda Reshma Dsouza', 'Harish Bhat', 'Girish A'];
+  const maxMT = Math.max(...dashSummaryMonths.map(m=>activeTrainers.reduce((s,t)=>(s+(mhrs[m]?.[t]||0)),0)),1);
+  let mHtml = dashSummaryMonths.filter(m=>mhrs[m]).map(m=>{
+    const data=mhrs[m]||{};const total=activeTrainers.reduce((s,t)=>s+(data[t]||0),0);
     if(!total) return '';
-    const segs=Object.entries(COLORS_T).map(([t,c])=>{const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
+    const segs=activeTrainers.map(t=>{const c=COLORS_T[t];const h=data[t]||0;return h>0?`<div style="background:${c};width:${(h/maxMT*100).toFixed(1)}%;height:100%;border-radius:2px;min-width:2px" title="${t}: ${h}h"></div>`:''}).join('');
     const lbl=m.split(' ')[0].substring(0,3)+' '+(m.includes('2025')?'25':'26');
     return `<div class="br"><div class="bl">${lbl}</div><div class="bt" style="height:20px;display:flex;gap:2px">${segs}</div><div class="bv">${total.toFixed(0)}h</div></div>`;
   }).join('');
-  const leg=Object.entries(COLORS_T).map(([t,c])=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx2)"><span style="width:9px;height:9px;border-radius:2px;background:${c};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
-  document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">${leg}</div>`;
+  const legHtml = activeTrainers.map(t=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx1);font-weight:600"><span style="width:9px;height:9px;border-radius:2px;background:${COLORS_T[t]};display:inline-block"></span>${t.split(' ')[0]}</span>`).join('');
+  document.getElementById('mChart').innerHTML=`<div class="bc">${mHtml}</div><div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px">${legHtml}</div>`;
 
   // Trainer totals
   const tTotals={};TRAINERS.forEach(t=>{tTotals[t]=acts.filter(a=>a.trainer&&a.trainer.includes(t)).reduce((s,a)=>s+a.hours,0);});
@@ -874,9 +876,6 @@ function buildDash() {
     });
     if([...fm.options].some(o=>o.value===prevM)) fm.value = prevM;
   }
-  if(ft && ft.options.length <= 1) {
-    ['Freeda Reshma Dsouza','Girish A','Harish Bhat'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t.split(' ')[0];ft.appendChild(o);});
-  }
   if(fty) {
     const prevY = fty.value;
     const allTypes = [...new Set(acts.map(a=>a.type))].sort();
@@ -887,7 +886,25 @@ function buildDash() {
   renderTable();
 }
 function renderTable() {
-  const fm=document.getElementById('fmth').value,ft=document.getElementById('ftrn').value,fty=document.getElementById('ftyp').value;
+  const fmEl=document.getElementById('fmth');
+  const fm=fmEl?fmEl.value:'all';
+  const ftEl=document.getElementById('ftrn');
+  const prevT=ftEl?ftEl.value:'all';
+  if(ftEl) {
+    const tList = ['Freeda Reshma Dsouza','Harish Bhat','Girish A'];
+    ftEl.innerHTML = '<option value="all">All Trainers</option>';
+    tList.forEach(t=>{
+      const o=document.createElement('option');
+      o.value=t;
+      o.textContent=t.split(' ')[0];
+      ftEl.appendChild(o);
+    });
+    if([...ftEl.options].some(o=>o.value===prevT)) ftEl.value=prevT;
+    else ftEl.value='all';
+  }
+  const ft=ftEl?ftEl.value:'all';
+  const ftyEl=document.getElementById('ftyp');
+  const fty=ftyEl?ftyEl.value:'all';
   let rows=getAllActs().filter(a=>MONTHS_ORDER.includes(a.month));
   if(fm!=='all') rows=rows.filter(r=>r.month===fm);
   if(ft!=='all') rows=rows.filter(r=>r.trainer&&r.trainer.includes(ft));

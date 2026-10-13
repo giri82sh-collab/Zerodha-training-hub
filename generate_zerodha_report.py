@@ -16,6 +16,7 @@ try:
     from openpyxl.chart import BarChart, PieChart, Reference, Series
     from openpyxl.chart.series import DataPoint
     from openpyxl.chart.label import DataLabelList
+    from openpyxl.cell.cell import MergedCell
 except ImportError:
     os.system("pip3 install openpyxl -q")
     import openpyxl
@@ -24,6 +25,7 @@ except ImportError:
     from openpyxl.chart import BarChart, PieChart, Reference, Series
     from openpyxl.chart.series import DataPoint
     from openpyxl.chart.label import DataLabelList
+    from openpyxl.cell.cell import MergedCell
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 def find_html_path():
@@ -59,7 +61,7 @@ MONTHS_ORDER = [
     "May 2026", "June 2026", "July 2026", "August 2026", "September 2026",
     "October 2026", "November 2026", "December 2026"
 ]
-TRAINERS     = ["Gaurav Kumar", "Raju Vernekar", "Freeda Reshma Dsouza", "Harish Bhat", "Girish A"]
+TRAINERS     = ["Freeda Reshma Dsouza", "Harish Bhat", "Girish A"]
 
 # ── Colors (exact from template) ─────────────────────────────────────────────
 TEAL         = "00BFA5"
@@ -81,8 +83,6 @@ DARK_TEXT    = "1F2937"
 ALT_ROW      = "F5F7FA"
 
 TRAINER_COLORS = {
-    "Gaurav Kumar": TEAL,
-    "Raju Vernekar": PURPLE_VAL,
     "Freeda Reshma Dsouza": AMBER_VAL,
     "Harish Bhat": BLUE_VAL,
     "Girish A": GREEN_VAL
@@ -169,6 +169,23 @@ else:
     all_logs = []
 all_acts   = base_acts + all_logs
 
+# Sanitize activities: completely remove Gaurav Kumar and Raju Vernekar from all activities
+def sanitize_item(item):
+    tr = item.get("trainer", "")
+    if "Gaurav" in tr or "Raju" in tr:
+        tr_cleaned = tr.replace("Gaurav Kumar / Raju Vernekar", "")\
+                       .replace("Gaurav Kumar", "")\
+                       .replace("Raju Vernekar", "")\
+                       .strip(" /")
+        if not tr_cleaned:
+            return None
+        item = dict(item)
+        item["trainer"] = tr_cleaned
+    return item
+
+all_acts = [sanitize_item(a) for a in all_acts if sanitize_item(a) is not None]
+all_logs = [sanitize_item(l) for l in all_logs if sanitize_item(l) is not None]
+
 # Filter to report months only
 report_set = set(MONTHS_ORDER)
 all_acts   = [a for a in all_acts if a.get("month") in report_set]
@@ -252,7 +269,10 @@ ws_dash = wb["Dashboard"]
 ws_dash["A3"].value = f"Training Activity Dashboard   |   {MONTHS_ORDER[0]} – {MONTHS_ORDER[-1]}"
 
 # Filter cell default
-ws_dash["D6"].value = "All Months"
+ws_dash["D6"].value = "September 2026"
+
+# Subtitle row A4 (Active trainers only)
+ws_dash["A4"].value = "Freeda Reshma Dsouza  ·  Girish A  ·  Harish Bhat"
 
 # Update KPI card formulas to expand range dynamically
 ws_dash["B9"] = f'=IF($D$6="All Months",COUNTA(Data!$A$2:$A${DATA_MAX_ROW}),COUNTIF(Data!$A$2:$A${DATA_MAX_ROW},$D$6))'
@@ -260,23 +280,47 @@ ws_dash["D9"] = f'=IF($D$6="All Months",SUM(Data!$I$2:$I${DATA_MAX_ROW}),SUMIF(D
 ws_dash["F9"] = f'=IF($D$6="All Months",SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Online",Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Online")*Data!$I$2:$I${DATA_MAX_ROW}))'
 ws_dash["H9"] = f'=IF($D$6="All Months",SUMIF(Data!$G$2:$G${DATA_MAX_ROW},"Offline",Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*(Data!$G$2:$G${DATA_MAX_ROW}="Offline")*Data!$I$2:$I${DATA_MAX_ROW}))'
 
-ws_dash["B13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Gaurav",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
-ws_dash["D13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Raju",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Raju",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
-ws_dash["F13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
-ws_dash["H13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
-ws_dash["J13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+# Active Trainers KPI Cards: Freeda (B-C), Harish (D-E), Girish (F-G)
+DASH_TRAINERS = ["Freeda Reshma Dsouza", "Harish Bhat", "Girish A"]
 
-# Row resizing calculations for active months
-active_months = [m for m in MONTHS_ORDER if m in mhrs]
-num_active = len(active_months)
+# Card 1: FREEDA RESHMA DSOUZA (Cols B-C)
+ws_dash["B12"].value = "FREEDA RESHMA DSOUZA"
+ws_dash["B13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Freeda",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["B14"].value = "hours trained"
+
+# Card 2: HARISH BHAT (Cols D-E)
+ws_dash["D12"].value = "HARISH BHAT"
+ws_dash["D13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Harish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["D14"].value = "hours trained"
+
+# Card 3: GIRISH A (Cols F-G)
+ws_dash["F12"].value = "GIRISH A"
+ws_dash["F13"] = f'=IF($D$6="All Months",SUMPRODUCT(ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}=$D$6)*ISNUMBER(SEARCH("Girish",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}))'
+ws_dash["F14"].value = "hours trained"
+
+# Clear unused trainer KPI cards (Cols H-K, rows 11-15)
+dash_bg_fill = PatternFill(start_color="1B2033", end_color="1B2033", fill_type="solid")
+empty_border = Border()
+for r in list(ws_dash.merged_cells.ranges):
+    if 11 <= r.min_row <= 15 and r.max_col >= 8:
+        ws_dash.unmerge_cells(str(r))
+for r in range(11, 16):
+    for c in range(8, 12):
+        cell = ws_dash.cell(row=r, column=c)
+        if not isinstance(cell, MergedCell):
+            cell.value = None
+        cell.fill = dash_bg_fill
+        cell.border = empty_border
+
+# Monthly summary contains ONLY August 2026 and September 2026
+summary_months = ["August 2026", "September 2026"]
+num_summary = len(summary_months)
 template_months_count = 5  # Template has Dec 2025 - Apr 2026 (rows 19 to 23)
-diff = num_active - template_months_count
+diff = num_summary - template_months_count
 
-# Shift cells, heights, and merged ranges below summary table if month count differs
+# Shift cells, heights, and merged ranges below summary table
 if diff > 0:
     ws_dash.insert_rows(24, diff)
-    
-    # Adjust merged ranges below row 24
     merged_ranges = list(ws_dash.merged_cells.ranges)
     for r in merged_ranges:
         ws_dash.merged_cells.remove(r)
@@ -284,13 +328,10 @@ if diff > 0:
         if r.min_row >= 24:
             r.shift(row_shift=diff)
         ws_dash.merged_cells.add(r)
-        
-    # Copy layout heights
     for r_idx in range(24, 24 + diff):
         ws_dash.row_dimensions[r_idx].height = 19.5
 elif diff < 0:
-    ws_dash.delete_rows(24, -diff)
-    
+    ws_dash.delete_rows(19 + num_summary, -diff)
     merged_ranges = list(ws_dash.merged_cells.ranges)
     for r in merged_ranges:
         ws_dash.merged_cells.remove(r)
@@ -299,8 +340,30 @@ elif diff < 0:
             r.shift(row_shift=diff)
         ws_dash.merged_cells.add(r)
 
-# Write summary rows B19 to O{18 + num_active}
-for idx, m in enumerate(active_months):
+# Header Row 18: Month, Freeda, Harish, Girish, Grand Total
+ws_dash.cell(row=18, column=2, value="Month")
+style_range(ws_dash, "B18:C18", fill_=fill("FFFFFF"), font_=font("546E7A", bold=True, size=9), align_=align("left", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+
+ws_dash.cell(row=18, column=4, value="Freeda Reshma D.")
+style_range(ws_dash, "D18:E18", fill_=fill("FFFFFF"), font_=font("546E7A", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+
+ws_dash.cell(row=18, column=6, value="Harish Bhat")
+style_range(ws_dash, "F18:G18", fill_=fill("FFFFFF"), font_=font("546E7A", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+
+ws_dash.cell(row=18, column=8, value="Girish A")
+style_range(ws_dash, "H18:I18", fill_=fill("FFFFFF"), font_=font("546E7A", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+
+ws_dash.cell(row=18, column=10, value="Grand Total")
+style_range(ws_dash, "J18:K18", fill_=fill("FFFFFF"), font_=font("546E7A", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+
+for c in range(12, 16):
+    cell = ws_dash.cell(row=18, column=c)
+    cell.value = None
+    cell.fill = dash_bg_fill
+    cell.border = empty_border
+
+# Write summary rows B19 to K{18 + num_summary}
+for idx, m in enumerate(summary_months):
     row = 19 + idx
     bg = WHITE if idx % 2 == 0 else ALT_ROW
     
@@ -308,9 +371,9 @@ for idx, m in enumerate(active_months):
     ws_dash.cell(row=row, column=2, value=m)
     style_range(ws_dash, f"B{row}:C{row}", fill_=fill(bg), font_=font("1F2937", bold=True, size=9), align_=align("left", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
     
-    # Trainer values (unmerged)
-    tr_cols = [4, 6, 8, 10, 12]  # D, F, H, J, L
-    for col_idx, trainer in zip(tr_cols, TRAINERS):
+    # Trainer values: Freeda (Col 4), Harish (Col 6), Girish (Col 8)
+    tr_cols = [4, 6, 8]
+    for col_idx, trainer in zip(tr_cols, DASH_TRAINERS):
         c_letter = get_column_letter(col_idx)
         c_letter2 = get_column_letter(col_idx+1)
         cell = ws_dash.cell(row=row, column=col_idx)
@@ -318,11 +381,18 @@ for idx, m in enumerate(active_months):
         style_range(ws_dash, f"{c_letter}{row}:{c_letter2}{row}", fill_=fill(bg), font_=font("1F2937", size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
         cell.number_format = "0.00"
         
-    # Grand Total (N to O unmerged)
-    cell_gt = ws_dash.cell(row=row, column=14)
-    cell_gt.value = f"=SUM(D{row},F{row},H{row},J{row},L{row})"
-    style_range(ws_dash, f"N{row}:O{row}", fill_=fill(bg), font_=font("7B61FF", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
+    # Grand Total (J to K unmerged)
+    cell_gt = ws_dash.cell(row=row, column=10)
+    cell_gt.value = f"=SUM(D{row},F{row},H{row})"
+    style_range(ws_dash, f"J{row}:K{row}", fill_=fill(bg), font_=font("7B61FF", bold=True, size=9), align_=align("right", "center"), border_=Border(bottom=Side(style="thin", color="E8EBF0")))
     cell_gt.number_format = "0.00"
+
+    # Clear columns L to O
+    for c in range(12, 16):
+        cell = ws_dash.cell(row=row, column=c)
+        cell.value = None
+        cell.fill = dash_bg_fill
+        cell.border = empty_border
 
 # ── Update Complete Activity Log (Static Values + AutoFilter) ────────────────
 log_start_row = 61 + diff
@@ -406,22 +476,22 @@ ws_cd = wb["CD"]
 if ws_cd.max_row >= 1:
     ws_cd.delete_rows(1, ws_cd.max_row)
 
-# 1. Write monthly hours per trainer (rows 1 to 1 + len(active_months))
+# 1. Write monthly hours per active trainer (rows 1 to 1 + len(summary_months))
 ws_cd.cell(row=1, column=1, value="Month")
-for j, t in enumerate(TRAINERS):
+for j, t in enumerate(DASH_TRAINERS):
     ws_cd.cell(row=1, column=j+2, value=t)
 
-for i, m in enumerate(active_months):
+for i, m in enumerate(summary_months):
     row = i + 2
     ws_cd.cell(row=row, column=1).value = m
-    for j, t in enumerate(TRAINERS):
+    for j, t in enumerate(DASH_TRAINERS):
         ws_cd.cell(row=row, column=j+2).value = (
             f'=IF(OR(Dashboard!$D$6="All Months",Dashboard!$D$6="{m}"),'
             f'SUMPRODUCT((Data!$A$2:$A${DATA_MAX_ROW}="{m}")*ISNUMBER(SEARCH("{t.split()[0]}",Data!$F$2:$F${DATA_MAX_ROW}))*Data!$I$2:$I${DATA_MAX_ROW}),0)'
         )
 
 # 2. Write session type breakdown (Online vs Offline)
-row_session = 3 + len(active_months)
+row_session = 3 + len(summary_months)
 ws_cd.cell(row=row_session, column=1, value="Session Type")
 ws_cd.cell(row=row_session, column=2, value="Hours")
 
@@ -458,7 +528,7 @@ for idx, (act, _) in enumerate(all_types_sorted):
 print("Re-creating charts…")
 ws_dash._charts.clear()
 
-chart_lbl_row = 19 + num_active + 2
+chart_lbl_row = 19 + num_summary + 2
 chart_anchor_row = chart_lbl_row + 1
 
 # Chart 1: Stacked Bar — Monthly Hours by Trainer
@@ -472,9 +542,9 @@ bar1.title   = None
 bar1.legend.position = "b"
 bar1.y_axis.title = "Hours"
 
-cats = Reference(ws_cd, min_col=1, max_col=1, min_row=2, max_row=1+num_active)
-for j, trainer in enumerate(TRAINERS):
-    vals = Reference(ws_cd, min_col=j+2, max_col=j+2, min_row=2, max_row=1+num_active)
+cats = Reference(ws_cd, min_col=1, max_col=1, min_row=2, max_row=1+num_summary)
+for j, trainer in enumerate(DASH_TRAINERS):
+    vals = Reference(ws_cd, min_col=j+2, max_col=j+2, min_row=2, max_row=1+num_summary)
     s = Series(vals, title=trainer)
     s.graphicalProperties.solidFill = TRAINER_COLORS.get(trainer, "CCCCCC")
     bar1.series.append(s)
