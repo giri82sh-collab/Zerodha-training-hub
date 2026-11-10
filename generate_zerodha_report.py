@@ -268,8 +268,12 @@ ws_dash = wb["Dashboard"]
 # Title row subtitle update
 ws_dash["A3"].value = f"Training Activity Dashboard   |   {MONTHS_ORDER[0]} – {MONTHS_ORDER[-1]}"
 
-# Filter cell default
-ws_dash["D6"].value = "September 2026"
+# Months that actually have activity data (in calendar order)
+months_with_data = [m for m in MONTHS_ORDER if any(a.get("month") == m for a in all_acts)]
+latest_month = months_with_data[-1] if months_with_data else "All Months"
+
+# Filter cell default — always the latest month that has data
+ws_dash["D6"].value = latest_month
 
 # Subtitle row A4 (Active trainers only)
 ws_dash["A4"].value = "Freeda Reshma Dsouza  ·  Girish A  ·  Harish Bhat"
@@ -312,8 +316,13 @@ for r in range(11, 16):
         cell.fill = dash_bg_fill
         cell.border = empty_border
 
-# Monthly summary contains ONLY August 2026 and September 2026
-summary_months = ["August 2026", "September 2026"]
+# Monthly summary: August 2026 onwards, up to the latest month with data.
+# (Previously hardcoded to Aug + Sep only, so October and later never appeared
+#  in the summary table or the "Monthly Hours by Trainer" chart.)
+SUMMARY_START = "August 2026"
+_start_idx = MONTHS_ORDER.index(SUMMARY_START)
+_end_idx = max([MONTHS_ORDER.index(m) for m in months_with_data] + [_start_idx + 1])
+summary_months = MONTHS_ORDER[_start_idx:_end_idx + 1]
 num_summary = len(summary_months)
 template_months_count = 5  # Template has Dec 2025 - Apr 2026 (rows 19 to 23)
 diff = num_summary - template_months_count
